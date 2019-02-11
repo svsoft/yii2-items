@@ -1,0 +1,3 @@
+.entity-form-items { margin-left: -10px; }
+.entity-form-items .entity-form-item { padding: 10px; }
+.entity-form-items .entity-form-item:nth-child(2n) { background-color: #ECF0F5;  }

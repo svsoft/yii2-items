@@ -48,7 +48,7 @@ class m190118_152700_create_tables extends Migration
             'value_string'=>$this->string(),
             'value_int'=>$this->integer(),
             'value_text'=>$this->text(),
-            'value_real'=>$this->decimal(10.4),
+            'value_real'=>$this->decimal(10,4),
         ]);
 
         $this->addForeignKey($value . '_item_key', $value, 'item_key', $item, 'key');

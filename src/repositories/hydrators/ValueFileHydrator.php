@@ -7,9 +7,9 @@ use svsoft\yii\items\entities\FileAttributeInterface;
 
 class ValueFileHydrator implements ValueHydratorInterface
 {
-    function hydrate($valueRow)
+    function hydrate($value)
     {
-        return $valueRow['value_string'] ? new FileAttribute($valueRow['value_string']) : null;
+        return $value ? new FileAttribute($value) : null;
     }
 
     /**

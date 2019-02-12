@@ -9,7 +9,6 @@ use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\UploadedFileAttribute;
 use svsoft\yii\items\repositories\hydrators\ItemHydrator;
-use yii\base\Event;
 use yii\db\Connection;
 
 class ItemRepository
@@ -68,7 +67,7 @@ class ItemRepository
             $columns = $itemData;
             unset($columns['values']);
             $this->tableManager->getTableItem()->insert($columns);
-            $itemKey = $this->db->lastInsertID;
+            $itemKey = $this->tableManager->getDb()->getLastInsertID();
 
             foreach($itemData['values'] as $valueRow)
             {
@@ -178,7 +177,8 @@ class ItemRepository
                                 $this->fileStorage->saveFile($file->getFileName(), $file->getFilePath());
                             }
 
-                            \Yii::$app->db->on(Connection::EVENT_ROLLBACK_TRANSACTION, function (Event $event) use ($file){
+                            // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_ROLLBACK_TRANSACTION обработчик не срабатывал
+                            \Yii::$app->db->on(Connection::EVENT_ROLLBACK_TRANSACTION, function () use ($file){
                                 if ($this->fileStorage->fileExist($file->getFileName()))
                                     $this->fileStorage->deleteFile($file->getFileName());
                             });
@@ -190,7 +190,8 @@ class ItemRepository
 
                         if (empty($files[$filename]))
                         {
-                            \Yii::$app->db->on(Connection::EVENT_COMMIT_TRANSACTION, function (Event $event) use ($file){
+                            // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_COMMIT_TRANSACTION обработчик не срабатывал
+                            \Yii::$app->db->on(Connection::EVENT_COMMIT_TRANSACTION, function () use ($file){
                                 if ($this->fileStorage->fileExist($file->getFileName()))
                                     $this->fileStorage->deleteFile($file->getFileName());
                             });
@@ -233,7 +234,8 @@ class ItemRepository
                     $attribute = $field->getName();
                     $files = $this->getFileValueAsArray($item->getAttribute($attribute));
 
-                    \Yii::$app->db->on(Connection::EVENT_COMMIT_TRANSACTION, function (Event $event) use ($files){
+                    // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_COMMIT_TRANSACTION обработчик не срабатывал
+                    \Yii::$app->db->on(Connection::EVENT_COMMIT_TRANSACTION, function () use ($files){
                         foreach($files as $filename=>$file)
                         {
                             if ($this->fileStorage->fileExist($file->getFileName()))

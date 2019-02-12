@@ -5,6 +5,8 @@ namespace svsoft\yii\items;
 use svsoft\yii\items\repositories\FileStorage;
 use svsoft\yii\items\repositories\TableManager;
 use svsoft\yii\items\services\ImageThumb;
+use svsoft\yii\items\services\ItemService;
+use svsoft\yii\items\services\ItemTypeService;
 use yii\base\BootstrapInterface;
 use yii\db\Connection;
 
@@ -18,5 +20,8 @@ class Bootstrap implements BootstrapInterface
         \Yii::$container->setSingleton( ImageThumb::class, [
             'class'=>ImageThumb::class,
         ]);
+
+        \Yii::$container->setSingleton(ItemTypeService::class);
+        \Yii::$container->setSingleton(ItemService::class);
     }
 }

@@ -3,7 +3,9 @@
 namespace svsoft\yii\items\services;
 
 use svsoft\yii\items\entities\Item;
+use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\exceptions\ValidationErrorException;
+use svsoft\yii\items\factories\ItemFactory;
 use svsoft\yii\items\factories\ItemFormFactory;
 use svsoft\yii\items\forms\ItemFiller;
 use svsoft\yii\items\forms\ItemFormFiller;
@@ -41,20 +43,42 @@ class ItemService extends BaseObject
     /**
      * @param $itemType
      *
-     * @return ItemQuery
+     * @return ItemQuery|string
      * @throws \yii\base\InvalidConfigException
      * @throws \yii\di\NotInstantiableException
      */
     public function getQuery($itemType)
     {
-        if (!$itemType instanceof ItemTypeRepository)
+        if (!$itemType instanceof ItemType)
         {
             $itemType = $this->itemTypeRepository->getByName($itemType);
         }
 
-        $query = new \Yii::$container->get(ItemQuery::class, [$itemType]);
+        $query = \Yii::createObject(ItemQuery::class, [$itemType]);
 
         return $query;
+    }
+
+    /**
+     * @param $name
+     *
+     * @return \svsoft\yii\items\entities\ItemType
+     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
+     */
+    public function getItemType($name)
+    {
+        return $this->itemTypeRepository->getByName($name);
+    }
+
+    /**
+     * @param $id
+     *
+     * @return ItemType
+     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
+     */
+    public function getItemTypeById($id)
+    {
+        return $this->itemTypeRepository->get($id);
     }
 
     /**
@@ -66,19 +90,18 @@ class ItemService extends BaseObject
     }
 
     /**
-     * @param Item $item
+     * @param ItemType $itemType
+     * @param Item|null $item
      *
      * @return ItemForm
      * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
-     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
      */
-    public function createItemForm(Item $item)
+    public function createItemForm(ItemType $itemType, Item $item = null)
     {
-        $itemType = $this->itemTypeRepository->get($item->getItemTypeId());
-
         $itemForm = (new ItemFormFactory($itemType))->build();
 
-        (new ItemFormFiller())->fill($item, $itemForm);
+        if ($item)
+            (new ItemFormFiller())->fill($item, $itemForm);
 
         return $itemForm;
     }
@@ -93,6 +116,18 @@ class ItemService extends BaseObject
         // var_dump($item->img);die();
 
         $this->repository->update($item);
+    }
+
+    public function create(ItemForm $itemForm)
+    {
+        if (!$itemForm->validate())
+            throw new ValidationErrorException('Item validation error');
+
+        $item = (new ItemFactory($itemForm->itemType))->build();
+
+        (new ItemFiller())->fill($item, $itemForm);
+
+        $this->repository->create($item);
     }
 
 }

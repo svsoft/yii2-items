@@ -3,7 +3,6 @@
 namespace svsoft\yii\items\widgets;
 
 use svsoft\yii\items\entities\Field;
-use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\forms\ItemForm;
 use yii\base\InvalidCallException;
 use yii\widgets\ActiveField;
@@ -16,10 +15,6 @@ class ItemFormWidget extends ActiveForm
      */
     public $itemForm;
 
-    /**
-     * @var Item
-     */
-    public $item;
 
     public $enableClientValidation = false;
 
@@ -31,9 +26,6 @@ class ItemFormWidget extends ActiveForm
     {
         if (!$this->itemForm)
             throw new InvalidCallException('Property itemForm must be set');
-
-        if (!$this->item)
-            throw new InvalidCallException('Property item must be set');
 
 
         parent::init();

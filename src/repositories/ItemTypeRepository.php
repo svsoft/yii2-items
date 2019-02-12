@@ -11,10 +11,7 @@ namespace svsoft\yii\items\repositories;
 use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\exceptions\ItemTypeNotFoundException;
 use svsoft\yii\items\repositories\hydrators\ItemTypeHydrator;
-use svsoft\yii\items\repositories\tables\TableField;
-use svsoft\yii\items\repositories\tables\TableItemType;
 use yii\db\Connection;
-use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
 class ItemTypeRepository
@@ -33,6 +30,13 @@ class ItemTypeRepository
      * @var TableManager
      */
     private $tableManager;
+
+    /**
+     * @var ItemType[]
+     */
+    private $_itemTypes;
+
+    private $_itemTypeIndex;
 
     function __construct(Connection $db, TableManager $tableManager, ItemTypeHydrator $itemTypeHydrator)
     {
@@ -67,6 +71,7 @@ class ItemTypeRepository
             }
 
             $t->commit();
+            $this->resetInternalRepository();
         }
         catch(\Exception $exception)
         {
@@ -95,42 +100,98 @@ class ItemTypeRepository
      */
     function get($id)
     {
-        $data = (new Query())->from(TableItemType::TABLE)->andWhere(['id' =>$id])->one();
-
-        if (!$data)
+        $itemTypes = $this->getItemTypes();
+        if (empty($itemTypes[$id]))
             throw new ItemTypeNotFoundException('Item type with id "'.$id.'" not found');
 
-        $data['fields'] = (new Query())->from(TableField::TABLE)->andWhere(['item_type_key' => $data['key']])->all();;
-
-        $itemType = $this->itemTypeHydrator->hydrate($data);
-
-        return $itemType;
+        return clone $itemTypes[$id];
     }
 
     /**
-     * Todo: Перделать, дублирование кода с методом get
-     *
      * @param $name
      *
      * @return ItemType
+     * @throws ItemTypeNotFoundException
      */
     function getByName($name)
     {
-        $data = (new Query())->from(TableItemType::TABLE)->andWhere(['name' =>$name])->one();
+        $itemTypes = $this->getItemTypes();
 
-        if (!$data)
-            return null;
+        if (empty($this->_itemTypeIndex[$name]))
+            throw new ItemTypeNotFoundException('Item type with name "'.$name.'" not found');
 
-        $data['fields'] = (new Query())->from(TableField::TABLE)->andWhere(['item_type_key' => $data['key']])->all();;
+        $id = $this->_itemTypeIndex[$name];
 
-        $itemType = $this->itemTypeHydrator->hydrate($data);
+        return clone $itemTypes[$id];
+    }
 
-        return $itemType;
+    /**
+     * @return ItemType[]
+     */
+    function getAll()
+    {
+        $itemTypes = [];
+        foreach($this->getItemTypes() as $key=>$itemType)
+        {
+            $itemTypes[$key] = clone $itemType;
+        }
+
+        return $itemTypes;
+    }
+
+    private function resetInternalRepository()
+    {
+        unset($this->_itemTypes);
+        unset($this->_itemTypeIndex);
+    }
+
+    /**
+     * @return ItemType[]
+     */
+    private function getItemTypes()
+    {
+        if ($this->_itemTypes === null)
+        {
+            $this->_itemTypes = $this->getAllFromDb();
+            $this->_itemTypeIndex = [];
+            foreach($this->_itemTypes as $itemType)
+            {
+                $this->_itemTypeIndex[$itemType->getName()] = $itemType->getId();
+            }
+        }
+
+        return $this->_itemTypes;
+    }
+
+    /**
+     * @return ItemType[]
+     */
+    private function getAllFromDb()
+    {
+        $itemTypeRows = $this->tableManager->getTableItemType()->query()->indexBy('key')->all();
+
+        $fieldRows = $this->tableManager->getTableField()->query()->all();
+
+        foreach($fieldRows as $fieldRow)
+        {
+            $itemTypeKey = $fieldRow['item_type_key'];
+            $itemTypeRows[$itemTypeKey]['fields'][] = $fieldRow;
+        }
+
+        $itemTypes = [];
+        foreach($itemTypeRows as $itemTypeRow)
+        {
+            $itemType = $this->itemTypeHydrator->hydrate($itemTypeRow);
+            $itemTypes[$itemType->getId()] = $itemType;
+        }
+
+        return $itemTypes;
     }
 
     /**
      * @param ItemType $itemType
      *
+     * @throws ItemTypeNotFoundException
      * @throws \Throwable
      * @throws \yii\db\Exception
      */
@@ -186,6 +247,8 @@ class ItemTypeRepository
             }
 
             $t->commit();
+
+            $this->resetInternalRepository();
         }
         catch(\Exception $exception)
         {

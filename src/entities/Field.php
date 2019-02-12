@@ -55,6 +55,11 @@ class Field
         $this->name = $name;
     }
 
+    function setMultiple($multiple)
+    {
+        $this->multiple = (bool)$multiple;
+    }
+
     function setType($type)
     {
         if (!in_array($type, self::types()))

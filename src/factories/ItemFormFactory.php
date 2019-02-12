@@ -45,7 +45,7 @@ class ItemFormFactory
                     $form->addRule($name, 'integer');
                     break;
                 case Field::TYPE_REAL :
-                    $form->addRule($name, 'numeric');
+                    $form->addRule($name, 'number');
                     break;
                 case Field::TYPE_FILE :
                     $form->addRule($name, 'file', ['maxFiles'=>$field->getMultiple() ? 10 : 1]);

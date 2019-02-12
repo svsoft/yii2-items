@@ -2,18 +2,36 @@
 
 namespace svsoft\yii\items\factories;
 
+use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\ItemType;
 
 class ItemTypeFactory
 {
+    private $name;
+
+    /**
+     * @var Field[]
+     */
+    private $fields = [];
+
     private function generateId()
     {
         return uniqid(bin2hex(random_bytes(1)));
     }
 
-    function build($name, $fields = [])
+    function __construct($name)
     {
-        return new ItemType($this->generateId(), $name, $fields);
+        $this->name = $name;
+    }
+
+    function build()
+    {
+        $itemType = new ItemType($this->generateId(), $this->name);
+
+        foreach($this->fields as $field)
+            $itemType->addField($field);
+
+        return new ItemType($this->generateId(), $this->name, $this->fields);
     }
 
 }

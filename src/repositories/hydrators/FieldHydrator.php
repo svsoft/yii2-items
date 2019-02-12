@@ -20,7 +20,7 @@ class FieldHydrator
 
     function hydrate($data)
     {
-        $field = new Field($data['id'], $data['name'], $data['type'], $data['multiple']);
+        $field = new Field($data['id'], $data['name'], $data['type'], (bool)$data['multiple']);
         return $field;
     }
 

@@ -2,11 +2,11 @@
 
 namespace svsoft\yii\items\repositories\hydrators;
 
-class ValueTextHydrator implements ValueHydratorInterface
+class ValueRealHydrator implements ValueHydratorInterface
 {
-    function hydrate($valueRow)
+    function hydrate($value)
     {
-        return $valueRow['value_text'];
+        return (float)$value;
     }
 
     function dehytrate($value)

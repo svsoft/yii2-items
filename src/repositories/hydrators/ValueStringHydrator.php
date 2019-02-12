@@ -4,9 +4,9 @@ namespace svsoft\yii\items\repositories\hydrators;
 
 class ValueStringHydrator implements ValueHydratorInterface
 {
-    function hydrate($valueRow)
+    function hydrate($value)
     {
-        return $valueRow['value_string'];
+        return $value;
     }
 
     function dehytrate($value)

@@ -8,6 +8,7 @@
 
 namespace svsoft\yii\items\repositories;
 
+use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\exceptions\ItemTypeNotFoundException;
 use svsoft\yii\items\repositories\hydrators\ItemTypeHydrator;
@@ -38,11 +39,18 @@ class ItemTypeRepository
 
     private $_itemTypeIndex;
 
-    function __construct(Connection $db, TableManager $tableManager, ItemTypeHydrator $itemTypeHydrator)
+    /**
+     * @var FileStorage
+     */
+    private $fileStorage;
+
+    function __construct(TableManager $tableManager, ItemTypeHydrator $itemTypeHydrator, FileStorage $fileStorage)
     {
-        $this->db = $db;
         $this->itemTypeHydrator = $itemTypeHydrator;
         $this->tableManager = $tableManager;
+        $this->fileStorage = $fileStorage;
+
+        $this->db = $tableManager->getDb();
     }
 
 
@@ -141,8 +149,8 @@ class ItemTypeRepository
 
     private function resetInternalRepository()
     {
-        unset($this->_itemTypes);
-        unset($this->_itemTypeIndex);
+        $this->_itemTypes = null;
+        $this->_itemTypeIndex = null;
     }
 
     /**
@@ -238,13 +246,68 @@ class ItemTypeRepository
             foreach($oldItemType->getFields() as $field)
             {
                 if (!$itemType->hasField($field->getId()))
-                {
-                    $fieldKey = $this->tableManager->getTableField()->getKey($field->getId());
-
-                    $this->tableManager->getTableField()->delete(['id' =>$field->getId()]);
-                    $this->tableManager->getTableValue()->delete(['field_key'=>$fieldKey]);
-                }
+                    $this->deleteField($field);
             }
+
+            $t->commit();
+
+            $this->resetInternalRepository();
+        }
+        catch(\Exception $exception)
+        {
+            $t->rollBack();
+            throw $exception;
+        }
+        catch(\Throwable $exception)
+        {
+            $t->rollBack();
+            throw $exception;
+        }
+    }
+
+    private function deleteField(Field $field)
+    {
+        $tableValue = $this->tableManager->getTableValue();
+        $fieldKey = $this->tableManager->getTableField()->getKey($field->getId());
+
+        if ($field->getType() == Field::TYPE_FILE)
+        {
+            $rows = $tableValue->query()->andWhere(['field_key'=>$fieldKey]);
+            $columnName = $tableValue->getValueColumn($field->getType());
+
+            foreach($rows as $row)
+            {
+                $filename = $row[$columnName];
+                // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_COMMIT_TRANSACTION обработчик не срабатывал
+                $this->tableManager->getDb()->on(Connection::EVENT_COMMIT_TRANSACTION, function () use ($filename){
+                    if ($this->fileStorage->fileExist($filename))
+                        $this->fileStorage->deleteFile($filename);
+                });
+            }
+        }
+
+        $this->tableManager->getTableField()->delete(['id' =>$field->getId()]);
+        $this->tableManager->getTableValue()->delete(['field_key'=>$fieldKey]);
+    }
+
+    /**
+     * @param ItemType $itemType
+     *
+     * @throws \Throwable
+     * @throws \yii\db\Exception
+     */
+    public function delete(ItemType $itemType)
+    {
+        $t = $this->db->beginTransaction();
+
+        try
+        {
+            foreach($itemType->getFields() as $field)
+            {
+                $this->deleteField($field);
+            }
+
+            $this->tableManager->getTableItemType()->delete(['id'=>$itemType->getId()]);
 
             $t->commit();
 

@@ -7,9 +7,10 @@ use svsoft\yii\items\factories\ItemTypeFactory;
 use svsoft\yii\items\repositories\ItemTypeRepository;
 use svsoft\yii\items\services\ItemTypeService;
 use yii\base\Component;
+use yii\db\Connection;
 use yii\db\MigrationInterface;
 
-class ItemMigration extends Component implements MigrationInterface
+abstract class ItemMigration extends Component implements MigrationInterface
 {
 
     /**
@@ -22,6 +23,19 @@ class ItemMigration extends Component implements MigrationInterface
      */
     protected $itemTypeService;
 
+    /**
+     * @var Connection
+     */
+    public $db;
+
+
+    /**
+     * @var bool indicates whether the console output should be compacted.
+     * If this is set to true, the individual commands ran within the migration will not be output to the console.
+     * Default is false, in other words the output is fully verbose by default.
+     * @since 2.0.13
+     */
+    public $compact = false;
 
     function init()
     {
@@ -29,32 +43,37 @@ class ItemMigration extends Component implements MigrationInterface
 
         $this->itemTypeService = \Yii::$container->get(ItemTypeService::class);
 
+        $this->db = \Yii::$container->get(Connection::class);
+
         parent::init();
     }
 
-    function up()
+    /**
+     * Prepares for a command to be executed, and outputs to the console.
+     *
+     * @param string $description the description for the command, to be output to the console.
+     * @return float the time before the command is executed, for the time elapsed to be calculated.
+     * @since 2.0.13
+     */
+    protected function beginCommand($description)
     {
-
-
-//        $this->createItemType('Product',[
-//            $this->string('name'),
-//            $this->text('description'),
-//            $this->real('price')
-//        ]);
-
-        // $this->addField('Project', $this->field('date')->string());
-//        $this->renameField('Project','address','address-2');
-
-//        $this->createItemType('Test',[
-//            $this->field('title')->string(),
-//            $this->field('content')->text()
-//        ]);
-
+        if (!$this->compact) {
+            echo "    > $description ...";
+        }
+        return microtime(true);
     }
 
-    function down()
+    /**
+     * Finalizes after the command has been executed, and outputs to the console the time elapsed.
+     *
+     * @param float $time the time before the command was executed.
+     * @since 2.0.13
+     */
+    protected function endCommand($time)
     {
-        // TODO: Implement down() method.
+        if (!$this->compact) {
+            echo ' done (time: ' . sprintf('%.3f', microtime(true) - $time) . "s)\n";
+        }
     }
 
     /**
@@ -66,6 +85,8 @@ class ItemMigration extends Component implements MigrationInterface
      */
     function createItemType($name, $fieldFactories)
     {
+        $time = $this->beginCommand("create item type $name");
+
         $itemType = (new ItemTypeFactory($name))->build();
 
         foreach($fieldFactories as $fieldFactory)
@@ -74,6 +95,8 @@ class ItemMigration extends Component implements MigrationInterface
         }
 
         $this->repository->create($itemType);
+
+        $this->endCommand($time);
     }
 
     /**
@@ -95,37 +118,61 @@ class ItemMigration extends Component implements MigrationInterface
      * @throws exceptions\FieldException
      * @throws exceptions\ItemTypeNotFoundException
      */
-    function addField($name, FieldFactory $fieldFactory)
+    function addField($itemTypeName, FieldFactory $fieldFactory)
     {
-        $itemType = $this->repository->getByName($name);
+
+        $itemType = $this->repository->getByName($itemTypeName);
 
         $field = $fieldFactory->build();
 
+        $time = $this->beginCommand("add field {$itemTypeName}.{$field->getName()}");
+
         $this->itemTypeService->addField($itemType, $field);
+
+        $this->endCommand($time);
     }
 
     function changeType($itemTypeName, $fieldName, $type, $multiple = null)
     {
         $itemType = $this->repository->getByName($itemTypeName);
 
+        $time = $this->beginCommand("change type to $type for field {$itemType->getName()}.{$fieldName}");
         $this->itemTypeService->changeType($itemType, $fieldName, $type, $multiple);
+        $this->endCommand($time);
     }
 
     function deleteField($itemTypeName, $fieldName)
     {
-        $itemType = $this->repository->getByName($itemTypeName);
+        $time = $this->beginCommand("delete field {$itemTypeName}.{$fieldName}");
 
+        $itemType = $this->repository->getByName($itemTypeName);
         $this->itemTypeService->removeField($itemType, $fieldName);
+
+        $this->endCommand($time);
     }
 
 
     function renameField($itemTypeName, $fieldName, $newFieldName)
     {
+        $time = $this->beginCommand("rename field {$itemTypeName}.{$fieldName} to {$newFieldName}");
+
         $itemType = $this->repository->getByName($itemTypeName);
 
         $this->itemTypeService->renameField($itemType, $fieldName, $newFieldName);
+
+        $this->endCommand($time);
     }
 
+
+    function deleteItemType($itemTypeName)
+    {
+        $time = $this->beginCommand("delete item type {$itemTypeName}");
+
+        $itemType = $this->repository->getByName($itemTypeName);
+        $this->itemTypeService->deleteItemType($itemType);
+
+        $this->endCommand($time);
+    }
 
     /**
      * @param $name

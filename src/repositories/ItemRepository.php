@@ -14,11 +14,6 @@ use yii\db\Connection;
 class ItemRepository
 {
     /**
-     * @var Connection
-     */
-    private $db;
-
-    /**
      * @var ItemHydrator
      */
     private $itemHydrator;
@@ -178,7 +173,7 @@ class ItemRepository
                             }
 
                             // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_ROLLBACK_TRANSACTION обработчик не срабатывал
-                            \Yii::$app->db->on(Connection::EVENT_ROLLBACK_TRANSACTION, function () use ($file){
+                            $this->tableManager->getDb()->on(Connection::EVENT_ROLLBACK_TRANSACTION, function () use ($file){
                                 if ($this->fileStorage->fileExist($file->getFileName()))
                                     $this->fileStorage->deleteFile($file->getFileName());
                             });
@@ -191,7 +186,7 @@ class ItemRepository
                         if (empty($files[$filename]))
                         {
                             // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_COMMIT_TRANSACTION обработчик не срабатывал
-                            \Yii::$app->db->on(Connection::EVENT_COMMIT_TRANSACTION, function () use ($file){
+                            $this->tableManager->getDb()->on(Connection::EVENT_COMMIT_TRANSACTION, function () use ($file){
                                 if ($this->fileStorage->fileExist($file->getFileName()))
                                     $this->fileStorage->deleteFile($file->getFileName());
                             });
@@ -235,7 +230,7 @@ class ItemRepository
                     $files = $this->getFileValueAsArray($item->getAttribute($attribute));
 
                     // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_COMMIT_TRANSACTION обработчик не срабатывал
-                    \Yii::$app->db->on(Connection::EVENT_COMMIT_TRANSACTION, function () use ($files){
+                    $this->tableManager->getDb()->on(Connection::EVENT_COMMIT_TRANSACTION, function () use ($files){
                         foreach($files as $filename=>$file)
                         {
                             if ($this->fileStorage->fileExist($file->getFileName()))

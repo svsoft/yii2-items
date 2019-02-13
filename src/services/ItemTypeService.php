@@ -71,4 +71,9 @@ class ItemTypeService extends BaseObject
 
         $this->repository->update($itemType);
     }
+
+    public function deleteItemType(ItemType $itemType)
+    {
+        $this->repository->delete($itemType);
+    }
 }

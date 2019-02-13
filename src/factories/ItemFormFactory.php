@@ -51,6 +51,8 @@ class ItemFormFactory
                     $form->addRule($name, 'file', ['maxFiles'=>$field->getMultiple() ? 10 : 1]);
                     break;
             }
+
+            $form->$name = $field->getMultiple() ? [] : null;
         }
 
         return $form;

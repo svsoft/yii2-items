@@ -70,6 +70,19 @@ class ItemRepository
                 $this->tableManager->getTableValue()->insert($valueRow);
             }
 
+            $itemType = $this->itemTypeRepository->get($item->getItemTypeId());
+            foreach($itemType->getFields() as $field)
+            {
+                $attribute = $field->getName();
+
+                if ($field->getType() === Field::TYPE_FILE)
+                {
+                    $files = $this->getFileValueAsArray($item->getAttribute($attribute));
+
+                    $this->saveFiles($files);
+                }
+            }
+
             $t->commit();
         }
         catch(\Exception $exception)
@@ -132,6 +145,36 @@ class ItemRepository
         return $files;
     }
 
+    /**
+     * @param AbstractFileAttribute[] $files
+     *
+     * @throws \svsoft\yii\items\exceptions\FileStorageException
+     */
+    private function saveFiles(array $files)
+    {
+        foreach($files as $filename=>$file)
+        {
+            if (empty($oldFiles[$filename]))
+            {
+                if ($file instanceof FilePathAttribute)
+                {
+                    $this->fileStorage->saveFile($file->getFileName(), $file->getFilePath());
+                }
+                elseif ($file instanceof UploadedFileAttribute)
+                {
+                    $this->fileStorage->saveFile($file->getFileName(), $file->getFilePath());
+                }
+
+                // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_ROLLBACK_TRANSACTION обработчик не срабатывал
+                $this->tableManager->getDb()->on(Connection::EVENT_ROLLBACK_TRANSACTION, function () use ($file){
+                    if ($this->fileStorage->fileExist($file->getFileName()))
+                        $this->fileStorage->deleteFile($file->getFileName());
+                });
+            }
+        }
+    }
+
+
     function update(Item $item)
     {
         $oldItem = $this->get($item->getId());
@@ -159,26 +202,7 @@ class ItemRepository
                     $files = $this->getFileValueAsArray($item->getAttribute($attribute));
                     $oldFiles = $this->getFileValueAsArray($oldItem->getAttribute($attribute));
 
-                    foreach($files as $filename=>$file)
-                    {
-                        if (empty($oldFiles[$filename]))
-                        {
-                            if ($file instanceof FilePathAttribute)
-                            {
-                                $this->fileStorage->saveFile($file->getFileName(), $file->getFilePath());
-                            }
-                            elseif ($file instanceof UploadedFileAttribute)
-                            {
-                                $this->fileStorage->saveFile($file->getFileName(), $file->getFilePath());
-                            }
-
-                            // todo: Тут нужно что то придумать чтоб при повторном событии EVENT_ROLLBACK_TRANSACTION обработчик не срабатывал
-                            $this->tableManager->getDb()->on(Connection::EVENT_ROLLBACK_TRANSACTION, function () use ($file){
-                                if ($this->fileStorage->fileExist($file->getFileName()))
-                                    $this->fileStorage->deleteFile($file->getFileName());
-                            });
-                        }
-                    }
+                    $this->saveFiles($files);
 
                     foreach($oldFiles as $filename=>$file)
                     {

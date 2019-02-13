@@ -107,21 +107,21 @@ class ImageThumb extends Component
         $this->createDir();
 
 
-        $imagine = new Imagine\Gd\Imagine();
-        $size    = new Imagine\Image\Box($width, $height);
+        $imagine = new \Imagine\Gd\Imagine();
+        $size    = new \Imagine\Image\Box($width, $height);
 
         $thumbnailMode = $mode;
         if ($mode == self::MODE_FIXED)
             $thumbnailMode = self::MODE_INSET;
 
-        /** @var Imagine\Image\ImageInterface $thumb */
+        /** @var \Imagine\Image\ImageInterface $thumb */
         $thumb = $imagine->open($filePath)->thumbnail($size, $thumbnailMode);
 
         if ($mode == self::MODE_FIXED)
         {
             $width = $thumb->getSize()->getWidth();
             $height = $thumb->getSize()->getHeight();
-            $thumb = $imagine->create($size)->paste($thumb, new Imagine\Image\Point(($size->getWidth() - $width)/2, ($size->getHeight() - $height)/2));
+            $thumb = $imagine->create($size)->paste($thumb, new \Imagine\Image\Point(($size->getWidth() - $width)/2, ($size->getHeight() - $height)/2));
         }
 
 

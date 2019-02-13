@@ -118,6 +118,13 @@ class ItemService extends BaseObject
         $this->repository->update($item);
     }
 
+    /**
+     * @param ItemForm $itemForm
+     *
+     * @throws ValidationErrorException
+     * @throws \Throwable
+     * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
+     */
     public function create(ItemForm $itemForm)
     {
         if (!$itemForm->validate())
@@ -128,6 +135,16 @@ class ItemService extends BaseObject
         (new ItemFiller())->fill($item, $itemForm);
 
         $this->repository->create($item);
+    }
+
+    /**
+     * @param Item $item
+     *
+     * @throws \Throwable
+     */
+    public function delete(Item $item)
+    {
+        $this->repository->delete($item);
     }
 
 }

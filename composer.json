@@ -18,9 +18,14 @@
   ],
   "require": {
     "php": ">=7.0",
-    "yiisoft/yii2": "~2.0.14"
+    "yiisoft/yii2": "~2.0.14",
+    "2amigos/yii2-ckeditor-widget": "^2.0",
+    "mihaildev/yii2-elfinder": "^1.2",
+    "unclead/yii2-multiple-input": "~2.0",
+    "kartik-v/yii2-datecontrol": "dev-master"
   },
   "extra": {
+
   },
   "autoload": {
     "psr-4": {

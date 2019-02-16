@@ -11,6 +11,7 @@ class Field
     const TYPE_REAL   = 'real';
     const TYPE_TEXT   = 'text';
     const TYPE_FILE   = 'file';
+    const TYPE_HTML   = 'html';
 
     protected $id;
     protected $name;
@@ -19,7 +20,7 @@ class Field
 
     static function types()
     {
-        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING];
+        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML];
     }
 
     function __construct($id, $name, $type, $multiple)

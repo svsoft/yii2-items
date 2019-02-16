@@ -44,7 +44,7 @@ class ItemTypeRepository
      */
     private $fileStorage;
 
-    function __construct(TableManager $tableManager, ItemTypeHydrator $itemTypeHydrator, FileStorage $fileStorage)
+    function __construct(FileStorage $fileStorage, TableManager $tableManager, ItemTypeHydrator $itemTypeHydrator)
     {
         $this->itemTypeHydrator = $itemTypeHydrator;
         $this->tableManager = $tableManager;
@@ -272,7 +272,7 @@ class ItemTypeRepository
 
         if ($field->getType() == Field::TYPE_FILE)
         {
-            $rows = $tableValue->query()->andWhere(['field_key'=>$fieldKey]);
+            $rows = $tableValue->query()->andWhere(['field_key'=>$fieldKey])->all();
             $columnName = $tableValue->getValueColumn($field->getType());
 
             foreach($rows as $row)
@@ -307,6 +307,9 @@ class ItemTypeRepository
                 $this->deleteField($field);
             }
 
+            $itemTypeKey = $this->tableManager->getTableItemType()->getKey($itemType->getId());
+
+            $this->tableManager->getTableItem()->delete(['item_type_key'=>$itemTypeKey]);
             $this->tableManager->getTableItemType()->delete(['id'=>$itemType->getId()]);
 
             $t->commit();

@@ -2,6 +2,8 @@
 
 namespace svsoft\yii\items\widgets;
 
+use dosamigos\ckeditor\CKEditor;
+use mihaildev\elfinder\ElFinder;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\forms\ItemForm;
 use yii\base\InvalidCallException;
@@ -17,10 +19,6 @@ class ItemFormWidget extends ActiveForm
 
 
     public $enableClientValidation = false;
-
-    public $fieldConfig = [
-        'class'=>\svsoft\yii\items\widgets\ActiveField::class,
-    ];
 
     function init()
     {
@@ -53,6 +51,9 @@ class ItemFormWidget extends ActiveForm
                     break;
                 case Field::TYPE_FILE:
                     $fieldWidgets[$field->getName()] = $this->fieldFile($field);
+                    break;
+                case Field::TYPE_HTML:
+                    $fieldWidgets[$field->getName()] = $this->fieldHtml($field, $fieldWidget);
                     break;
             }
         }
@@ -92,6 +93,24 @@ class ItemFormWidget extends ActiveForm
 
         return $this->field($this->itemForm, $field->getName())->widget(FileUploadWidget::class, ['multiple'=>$field->getMultiple()]);
 
+    }
+
+    /**
+     * @param Field $field
+     * @param ActiveField $activeField
+     *
+     * @return ActiveField
+     */
+    function fieldHtml(Field $field, ActiveField $activeField)
+    {
+        return $activeField->widget(CKEditor::class,[
+            'options' => ['rows' => 6],
+            'preset' => 'full',
+            'clientOptions'=>ElFinder::ckeditorOptions(['elfinder']) + [
+                    'allowedContent' => 'a pre blockquote img em p i h1 h2 h3 h4 h5 iframe[*]; div span table tbody thead tr th td ul li ol(*)[*]; br hr strong;',
+                    'height'=>250
+                ]
+        ]);
     }
 
 }

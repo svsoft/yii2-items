@@ -20,7 +20,9 @@ class TableValue extends AbstractTableValue
             Field::TYPE_TEXT   => 'value_text',
             Field::TYPE_REAL   => 'value_real',
             Field::TYPE_FILE   => 'value_string',
+            Field::TYPE_HTML   => 'value_text',
         ];
+
         parent::__construct($db);
     }
 

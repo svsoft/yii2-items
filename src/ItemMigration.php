@@ -179,7 +179,7 @@ abstract class ItemMigration extends Component implements MigrationInterface
      *
      * @return FieldFactory
      */
-    function integer($name)
+    function integerField($name)
     {
         return $this->field($name, Field::TYPE_INT);
     }
@@ -189,7 +189,7 @@ abstract class ItemMigration extends Component implements MigrationInterface
      *
      * @return FieldFactory
      */
-    function string($name)
+    function stringField($name)
     {
         return $this->field($name, Field::TYPE_STRING);
     }
@@ -199,7 +199,7 @@ abstract class ItemMigration extends Component implements MigrationInterface
      *
      * @return FieldFactory
      */
-    function text($name)
+    function textField($name)
     {
         return $this->field($name, Field::TYPE_TEXT);
     }
@@ -209,7 +209,7 @@ abstract class ItemMigration extends Component implements MigrationInterface
      *
      * @return FieldFactory
      */
-    function file($name)
+    function fileField($name)
     {
         return $this->field($name, Field::TYPE_FILE);
     }
@@ -219,8 +219,18 @@ abstract class ItemMigration extends Component implements MigrationInterface
      *
      * @return FieldFactory
      */
-    function real($name)
+    function realField($name)
     {
         return $this->field($name, Field::TYPE_REAL);
+    }
+
+    /**
+     * @param $name
+     *
+     * @return FieldFactory
+     */
+    function htmlField($name)
+    {
+        return $this->field($name, Field::TYPE_HTML);
     }
 }

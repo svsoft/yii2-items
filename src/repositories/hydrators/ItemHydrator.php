@@ -37,6 +37,7 @@ class ItemHydrator
             Field::TYPE_REAL   => new ValueRealHydrator(),
             Field::TYPE_TEXT   => new ValueStringHydrator(),
             Field::TYPE_FILE   => new ValueFileHydrator(),
+            Field::TYPE_HTML   => new ValueStringHydrator(),
         ];
     }
 

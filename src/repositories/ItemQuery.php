@@ -65,6 +65,9 @@ class ItemQuery extends Query
         // Добавляем джойны для фильтрации и сортировки
         foreach(array_unique($this->fieldNames) as $fieldName)
         {
+            if ($fieldName=='id')
+                continue;
+
             if (empty($fields[$fieldName]))
                 throw new FieldNotFoundException("Field \"$fieldName\" not found");
 
@@ -165,5 +168,20 @@ class ItemQuery extends Query
         }
 
         return $result;
+    }
+
+    /**
+     * @param $id
+     *
+     * @return ItemQuery
+     */
+    function andId($id)
+    {
+        return $this->andWhere(['id'=>$id]);
+    }
+
+    function andNotId($id)
+    {
+        return $this->andWhere(['<>','id',$id]);
     }
 }

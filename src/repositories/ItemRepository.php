@@ -8,6 +8,7 @@ use svsoft\yii\items\entities\FilePathAttribute;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\UploadedFileAttribute;
+use svsoft\yii\items\exceptions\ItemNotFoundException;
 use svsoft\yii\items\repositories\hydrators\ItemHydrator;
 use yii\db\Connection;
 
@@ -41,7 +42,7 @@ class ItemRepository
      * @param ItemTypeRepository $itemTypeRepository
      * @param FileStorage $fileStorage
      */
-    function __construct(TableManager $tableManager, ItemHydrator $itemHydrator, ItemTypeRepository $itemTypeRepository, FileStorage $fileStorage)
+    function __construct(FileStorage $fileStorage, TableManager $tableManager, ItemHydrator $itemHydrator, ItemTypeRepository $itemTypeRepository)
     {
         $this->tableManager = $tableManager;
 
@@ -97,9 +98,19 @@ class ItemRepository
         }
     }
 
+    /**
+     * @param $id
+     *
+     * @return Item
+     * @throws ItemNotFoundException
+     */
     function get($id)
     {
         $itemRow = $this->tableManager->getTableItem()->query()->andWhere(['id' =>$id])->one();
+
+        if (!$itemRow)
+            throw new ItemNotFoundException();
+
         $itemKey = $itemRow['key'];
         $valueRows = $this->tableManager->getTableValue()->query()->andWhere(['item_key' =>$itemKey])->all();
         $itemData = $itemRow;

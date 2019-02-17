@@ -75,7 +75,7 @@ class ItemQuery extends Query
 
             $fieldKey = $this->tableManager->getTableField()->getKey($field->getId());
             $tableAlias = 'join_'.$fieldName;
-            $column = $this->tableManager->getTableValue()->getValueColumn($field->getType());
+            $column = $this->tableManager->getTableValue()->getValueColumn($field->getType()->getId());
             $itemQuery->addSelect(["{$tableAlias}.{$column} as $fieldName"]);
             $itemQuery->leftJoin([$tableAlias=>TableValue::TABLE], "{$tableAlias}.item_key = item.key AND $tableAlias.field_key = $fieldKey");
         }

@@ -27,7 +27,7 @@ class ItemFormFiller
         foreach($itemForm->itemType->getFields() as $field)
         {
             $name = $field->getName();
-            if ($field->getType() === Field::TYPE_FILE)
+            if ($field->getType()->getId() === Field::TYPE_FILE)
             {
                 $value = $item->getAttribute($name);
 

@@ -2,10 +2,14 @@
 namespace svsoft\yii\items;
 
 use svsoft\yii\items\entities\Field;
+use svsoft\yii\items\factories\FieldBuilder;
 use svsoft\yii\items\factories\FieldFactory;
-use svsoft\yii\items\factories\ItemTypeFactory;
+use svsoft\yii\items\factories\FieldTypeBuilder;
+use svsoft\yii\items\factories\ItemTypeBuilder;
 use svsoft\yii\items\repositories\ItemTypeRepository;
-use svsoft\yii\items\services\ItemTypeService;
+use svsoft\yii\items\services\ItemManager;
+use svsoft\yii\items\services\Items;
+use svsoft\yii\items\services\ItemTypeManager;
 use yii\base\Component;
 use yii\db\Connection;
 use yii\db\MigrationInterface;
@@ -19,9 +23,14 @@ abstract class ItemMigration extends Component implements MigrationInterface
     protected $repository;
 
     /**
-     * @var ItemTypeService
+     * @var ItemTypeManager
      */
-    protected $itemTypeService;
+    private $itemTypeService;
+
+    /**
+     * @var ItemManager
+     */
+    private $itemManager;
 
     /**
      * @var Connection
@@ -39,9 +48,13 @@ abstract class ItemMigration extends Component implements MigrationInterface
 
     function init()
     {
-        $this->repository = \Yii::$container->get(ItemTypeRepository::class);
+        /** @var Items $items */
+        $items = \Yii::$container->get(Items::class);
 
-        $this->itemTypeService = \Yii::$container->get(ItemTypeService::class);
+        $this->repository = $items->getItemTypeRepository();
+
+        $this->itemManager = $items->itemManager;
+        $this->itemTypeService = \Yii::$container->get(ItemTypeManager::class);
 
         $this->db = \Yii::$container->get(Connection::class);
 
@@ -83,16 +96,30 @@ abstract class ItemMigration extends Component implements MigrationInterface
      * @throws \Throwable
      * @throws \yii\db\Exception
      */
-    function createItemType($name, $fieldFactories)
+    /**
+     * @param $name
+     * @param FieldTypeBuilder[] $builders
+     *
+     * @throws \Throwable
+     * @throws \yii\db\Exception
+     * @throws exceptions\FieldException
+     */
+    function createItemType($name, $typeBuilders = [])
     {
         $time = $this->beginCommand("create item type $name");
 
-        $itemType = (new ItemTypeFactory($name))->build();
-
-        foreach($fieldFactories as $fieldFactory)
+        foreach($typeBuilders as $fieldName=>$typeBuilder)
         {
-            $itemType->addField($fieldFactory->build());
+            $type = $typeBuilder->build();
+
+            /** @var FieldBuilder $fieldBuilder */
+            $fieldBuilder = \Yii::createObject(FieldBuilder::class);
+            $field = $fieldBuilder->setType($type)->setName($fieldName)->build();
+            $fields[] = $field;
+            //$itemType->addField($field);
         }
+
+        $itemType = (new ItemTypeBuilder())->setName($name)->setFields($fields)->build();
 
         $this->repository->create($itemType);
 
@@ -106,6 +133,7 @@ abstract class ItemMigration extends Component implements MigrationInterface
      */
     function field($name, $type)
     {
+        //return new
         return new FieldFactory($name, $type);
     }
 
@@ -132,12 +160,13 @@ abstract class ItemMigration extends Component implements MigrationInterface
         $this->endCommand($time);
     }
 
-    function changeType($itemTypeName, $fieldName, $type, $multiple = null)
+    function changeType($itemTypeName, $fieldName, FieldTypeBuilder $typeBuilder)
     {
         $itemType = $this->repository->getByName($itemTypeName);
+        $type = $typeBuilder->build();
 
-        $time = $this->beginCommand("change type to $type for field {$itemType->getName()}.{$fieldName}");
-        $this->itemTypeService->changeType($itemType, $fieldName, $type, $multiple);
+        $time = $this->beginCommand("change type to {$type->getId()} for field {$itemType->getName()}.{$fieldName}");
+        $this->itemTypeService->changeType($itemType, $fieldName, $type);
         $this->endCommand($time);
     }
 
@@ -163,6 +192,17 @@ abstract class ItemMigration extends Component implements MigrationInterface
         $this->endCommand($time);
     }
 
+    /**
+     * @param $itemTypeName
+     *
+     * @return entities\ItemType
+     * @throws exceptions\ItemTypeNotFoundException
+     */
+    function getItemType($itemTypeName)
+    {
+        return $this->repository->getByName($itemTypeName);
+    }
+
 
     function deleteItemType($itemTypeName)
     {
@@ -175,62 +215,101 @@ abstract class ItemMigration extends Component implements MigrationInterface
     }
 
     /**
-     * @param $name
+     * @param $typeId
      *
-     * @return FieldFactory
+     * @return FieldTypeBuilder
+     * @throws \yii\base\InvalidConfigException
      */
-    function integerField($name)
+    function fieldTypeBuilder($typeId)
     {
-        return $this->field($name, Field::TYPE_INT);
+        /** @var FieldTypeBuilder $builder */
+        $builder = \Yii::createObject(FieldTypeBuilder::class);
+        $builder->setId($typeId);
+
+        return $builder;
     }
 
     /**
-     * @param $name
-     *
-     * @return FieldFactory
+     * @return FieldTypeBuilder
+     * @throws \yii\base\InvalidConfigException
      */
-    function stringField($name)
+    function intType()
     {
-        return $this->field($name, Field::TYPE_STRING);
+        return $this->fieldTypeBuilder(Field::TYPE_INT);
     }
 
     /**
-     * @param $name
+     * @param $itemTypeName
      *
-     * @return FieldFactory
+     * @return FieldTypeBuilder
+     * @throws \yii\base\InvalidConfigException
+     * @throws exceptions\ItemTypeNotFoundException
      */
-    function textField($name)
+    function itemType($itemTypeName)
     {
-        return $this->field($name, Field::TYPE_TEXT);
+        $itemType = $this->repository->getByName($itemTypeName);
+
+        return $this->fieldTypeBuilder(Field::TYPE_ITEM)->setParam('itemTypeId', $itemType->getId());
+
+    }
+
+    function stringType()
+    {
+        return $this->fieldTypeBuilder(Field::TYPE_STRING);
+    }
+
+    function textType()
+    {
+        return $this->fieldTypeBuilder(Field::TYPE_TEXT);
     }
 
     /**
-     * @param $name
-     *
-     * @return FieldFactory
+     * @return FieldTypeBuilder
+     * @throws \yii\base\InvalidConfigException
      */
-    function fileField($name)
+    function fileType()
     {
-        return $this->field($name, Field::TYPE_FILE);
+        return $this->fieldTypeBuilder(Field::TYPE_FILE);
     }
 
     /**
-     * @param $name
-     *
-     * @return FieldFactory
+     * @return FieldTypeBuilder
+     * @throws \yii\base\InvalidConfigException
      */
-    function realField($name)
+    function htmlType()
     {
-        return $this->field($name, Field::TYPE_REAL);
+        return $this->fieldTypeBuilder(Field::TYPE_HTML);
     }
 
     /**
-     * @param $name
-     *
-     * @return FieldFactory
+     * @return FieldTypeBuilder
+     * @throws \yii\base\InvalidConfigException
      */
-    function htmlField($name)
+    function realType()
     {
-        return $this->field($name, Field::TYPE_HTML);
+        return $this->fieldTypeBuilder(Field::TYPE_REAL);
     }
+
+
+    /**
+     * @param $itemTypeName
+     * @param $attributes
+     *
+     * @throws \Throwable
+     * @throws exceptions\ItemAttributeNotFound
+     * @throws exceptions\ItemTypeNotFoundException
+     * @throws exceptions\ValidationErrorException
+     */
+    function insertItem($itemTypeName, $attributes)
+    {
+        $itemType = $this->getItemType($itemTypeName);
+
+        $itemForm = $this->itemManager->createForm($itemType);
+
+        $itemForm->setAttributes($attributes);
+
+        return $this->itemManager->create($itemForm);
+    }
+
+
 }

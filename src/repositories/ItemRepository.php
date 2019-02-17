@@ -76,7 +76,7 @@ class ItemRepository
             {
                 $attribute = $field->getName();
 
-                if ($field->getType() === Field::TYPE_FILE)
+                if ($field->getType()->getId() === Field::TYPE_FILE)
                 {
                     $files = $this->getFileValueAsArray($item->getAttribute($attribute));
 
@@ -208,7 +208,7 @@ class ItemRepository
             {
                 $attribute = $field->getName();
 
-                if ($field->getType() === Field::TYPE_FILE)
+                if ($field->getType()->getId() === Field::TYPE_FILE)
                 {
                     $files = $this->getFileValueAsArray($item->getAttribute($attribute));
                     $oldFiles = $this->getFileValueAsArray($oldItem->getAttribute($attribute));
@@ -259,7 +259,7 @@ class ItemRepository
             $itemType = $this->itemTypeRepository->get($item->getItemTypeId());
             foreach($itemType->getFields() as $field)
             {
-                if ($field->getType() === Field::TYPE_FILE)
+                if ($field->getType()->getId() === Field::TYPE_FILE)
                 {
                     $attribute = $field->getName();
                     $files = $this->getFileValueAsArray($item->getAttribute($attribute));

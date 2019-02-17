@@ -39,7 +39,7 @@ class ItemFormWidget extends ActiveForm
         {
             $fieldWidget = $this->field($this->itemForm, $field->getName());
 
-            switch($field->getType())
+            switch($field->getType()->getId())
             {
                 case Field::TYPE_STRING:
                 case Field::TYPE_REAL:
@@ -54,6 +54,9 @@ class ItemFormWidget extends ActiveForm
                     break;
                 case Field::TYPE_HTML:
                     $fieldWidgets[$field->getName()] = $this->fieldHtml($field, $fieldWidget);
+                    break;
+                case Field::TYPE_ITEM:
+                    $fieldWidgets[$field->getName()] = $this->fieldString($fieldWidget);
                     break;
             }
         }

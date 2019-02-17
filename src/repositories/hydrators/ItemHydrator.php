@@ -38,6 +38,7 @@ class ItemHydrator
             Field::TYPE_TEXT   => new ValueStringHydrator(),
             Field::TYPE_FILE   => new ValueFileHydrator(),
             Field::TYPE_HTML   => new ValueStringHydrator(),
+            Field::TYPE_ITEM   => new ValueItemHydrator($tableManager),
         ];
     }
 
@@ -65,7 +66,7 @@ class ItemHydrator
             $fieldId = $this->tableManager->getTableField()->getId($fieldKey);
             $field = $itemType->getField($fieldId);
 
-            $valueColumn = $this->tableManager->getTableValue()->getValueColumn($field->getType());
+            $valueColumn = $this->tableManager->getTableValue()->getValueColumn($field->getType()->getId());
 
             $hydrateValues = [];
             foreach($valueRows as $valueRow)
@@ -113,13 +114,13 @@ class ItemHydrator
 
             foreach($values as $value)
             {
-                $valueColumn = $this->tableManager->getTableValue()->getValueColumn($field->getType());
+                $valueColumn = $this->tableManager->getTableValue()->getValueColumn($field->getType()->getId());
                 $value = $this->getValueHydrator($field)->dehytrate($value);
 
                 if ($value !== null)
                     $itemData['values'][] = array_merge($valueRow, [$valueColumn => $value]);
             }
-    }
+       }
 
         return $itemData;
     }
@@ -137,6 +138,6 @@ class ItemHydrator
      */
     function getValueHydrator(Field $field)
     {
-        return $this->valueHydrators[$field->getType()];
+        return $this->valueHydrators[$field->getType()->getId()];
     }
 }

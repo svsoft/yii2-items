@@ -19,6 +19,7 @@
   "require": {
     "php": ">=7.0",
     "yiisoft/yii2": "~2.0.14",
+    "imagine/imagine": "*",
     "2amigos/yii2-ckeditor-widget": "^2.0",
     "mihaildev/yii2-elfinder": "^1.2",
     "unclead/yii2-multiple-input": "~2.0",

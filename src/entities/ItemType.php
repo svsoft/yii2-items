@@ -65,7 +65,7 @@ class ItemType
     function getField($id)
     {
         if (!$field = ArrayHelper::getValue($this->fields, $id))
-            throw new FieldNotFoundException();
+            throw new FieldNotFoundException("Field with id \"{$id}\" not found");
 
         return $field;
     }

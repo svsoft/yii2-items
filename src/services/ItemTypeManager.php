@@ -4,15 +4,15 @@ namespace svsoft\yii\items\services;
 
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\ItemType;
+use svsoft\yii\items\entities\types\FieldType;
 use svsoft\yii\items\exceptions\FieldException;
 use svsoft\yii\items\repositories\ItemTypeRepository;
-use yii\base\BaseObject;
 
 /**
  * Class ItemService
  * @package svsoft\yii\items\services
  */
-class ItemTypeService extends BaseObject
+class ItemTypeManager
 {
     /**
      * @var ItemTypeRepository
@@ -22,7 +22,6 @@ class ItemTypeService extends BaseObject
     public function __construct(ItemTypeRepository $itemTypeRepository)
     {
         $this->repository = $itemTypeRepository;
-        parent::__construct([]);
     }
 
     /**
@@ -60,14 +59,11 @@ class ItemTypeService extends BaseObject
         $this->repository->update($itemType);
     }
 
-    public function changeType(ItemType $itemType, $fieldName, $newType, $newMultiple = null)
+    public function changeType(ItemType $itemType, $fieldName, FieldType $fieldType)
     {
         $field = $itemType->getFieldByName($fieldName);
 
-        $field->setType($newType);
-
-        if ($newMultiple !== null)
-            $field->setMultiple($newMultiple);
+        $field->setType($fieldType);
 
         $this->repository->update($itemType);
     }

@@ -6,7 +6,7 @@ class ValueRealHydrator implements ValueHydratorInterface
 {
     function hydrate($value)
     {
-        return (float)$value;
+        return $value !== null ? (float)$value : null;
     }
 
     function dehytrate($value)

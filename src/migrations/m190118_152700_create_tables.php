@@ -25,14 +25,18 @@ class m190118_152700_create_tables extends Migration
 
 
         $this->createTable($field, [
-            'key'=>$this->primaryKey()->unsigned(),
-            'item_type_key'=>$this->integer()->unsigned()->notNull(),
-            'id' => $this->string(15)->unique()->notNull(),
-            'name' => $this->string(255)->notNull(),
-            'type' => $this->string(255)->notNull(),
-            'multiple' => $this->boolean()->notNull(),
+            'key'                      => $this->primaryKey()->unsigned(),
+            'item_type_key'            => $this->integer()->unsigned()->notNull(),
+            'id'                       => $this->string(15)->unique()->notNull(),
+            'name'                     => $this->string(255)->notNull(),
+            'type'                     => $this->string(255)->notNull(),
+            'params'                   => $this->text(),
+            'field_type_item_type_key' => $this->integer()->unsigned(),
+            //'multiple' => $this->boolean()->notNull(),
         ]);
+
         $this->addForeignKey($field . '_item_type_key', $field, 'item_type_key', $type, 'key');
+        $this->addForeignKey($field . 'field_type_item_type_key', $field, 'field_type_item_type_key', $type, 'key');
         $this->createIndex($field . '_name', $field, ['item_type_key','name'], true);
 
         $this->createTable($item, [
@@ -49,9 +53,11 @@ class m190118_152700_create_tables extends Migration
             'value_int'=>$this->integer(),
             'value_text'=>$this->text(),
             'value_real'=>$this->decimal(10,4),
+            'value_item' => $this->integer()->unsigned(),
         ]);
 
         $this->addForeignKey($value . '_item_key', $value, 'item_key', $item, 'key');
+        $this->addForeignKey($value . '_value_item', $value, 'value_item', $item, 'key');
     }
 
     /**

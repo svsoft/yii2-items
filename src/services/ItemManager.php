@@ -77,6 +77,7 @@ class ItemManager extends Component
     /**
      * @param ItemForm $itemForm
      *
+     * @return Item
      * @throws ValidationErrorException
      * @throws \Throwable
      * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
@@ -91,6 +92,8 @@ class ItemManager extends Component
         (new ItemFiller())->fill($item, $itemForm);
 
         $this->repository->create($item);
+
+        return $item;
     }
 
     /**

@@ -231,9 +231,9 @@ class ItemTypeRepository
 
                     $this->tableManager->getTableField()->update($fieldData, ['id'=>$fieldId]);
 
-                    if ($oldField->getType() != $field->getType())
+                    if ($oldField->getType()->getId() != $field->getType()->getId())
                     {
-                        $this->tableManager->getTableValue()->changeType($fieldKey, $oldField->getType(), $field->getType());
+                        $this->tableManager->getTableValue()->changeType($fieldKey, $oldField->getType()->getId(), $field->getType()->getId());
                     }
                 }
                 else
@@ -270,10 +270,10 @@ class ItemTypeRepository
         $tableValue = $this->tableManager->getTableValue();
         $fieldKey = $this->tableManager->getTableField()->getKey($field->getId());
 
-        if ($field->getType() == Field::TYPE_FILE)
+        if ($field->getType()->getId() == Field::TYPE_FILE)
         {
             $rows = $tableValue->query()->andWhere(['field_key'=>$fieldKey])->all();
-            $columnName = $tableValue->getValueColumn($field->getType());
+            $columnName = $tableValue->getValueColumn($field->getType()->getId());
 
             foreach($rows as $row)
             {

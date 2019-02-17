@@ -32,7 +32,6 @@ class ItemFiller
      * @param ItemForm $itemForm
      * @param Item $item
      *
-     * @return Item
      * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
      */
     function fill(Item $item, ItemForm $itemForm)
@@ -40,7 +39,7 @@ class ItemFiller
         foreach($itemForm->itemType->getFields() as $field)
         {
             $name = $field->getName();
-            if ($field->getType() === Field::TYPE_FILE)
+            if ($field->getType()->getId() === Field::TYPE_FILE)
             {
                 if ($field->getMultiple())
                 {

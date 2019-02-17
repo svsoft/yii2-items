@@ -25,6 +25,7 @@ use yii\di\ServiceLocator;
  * Class Items
  * @package svsoft\yii\items\services
  * @property ItemManager $itemManager
+ * @property ImageThumb $imageThumb
  */
 class Items extends ServiceLocator
 {
@@ -146,6 +147,13 @@ class Items extends ServiceLocator
                 'items' => $this,
             ]);
         }
+
+        if (!$this->has('imageThumb'))
+        {
+            $this->set('imageThumb', [
+                'class' => ImageThumb::class,
+            ]);
+        }
     }
 
     /**
@@ -170,7 +178,7 @@ class Items extends ServiceLocator
      */
     public function getItemTypeByName($name)
     {
-        $this->getItemTypeRepository()->getByName($name);
+        return $this->getItemTypeRepository()->getByName($name);
     }
 
 }

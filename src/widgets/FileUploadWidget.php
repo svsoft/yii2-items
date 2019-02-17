@@ -9,6 +9,7 @@ namespace svsoft\yii\items\widgets;
 
 use svsoft\yii\items\repositories\FileStorage;
 use svsoft\yii\items\services\ImageThumb;
+use svsoft\yii\items\services\Items;
 use yii\bootstrap\Html;
 use yii\widgets\InputWidget;
 
@@ -30,10 +31,13 @@ class FileUploadWidget extends InputWidget
 
     protected function renderInput()
     {
+        /** @var Items $items */
+        $items = \Yii::$container->get(Items::class);
+
         /** @var FileStorage $fileStorage */
-        $fileStorage = \Yii::$container->get(FileStorage::class);
+        $fileStorage = $items->getFileStorage();
         /** @var ImageThumb $imageThumb */
-        $imageThumb = \Yii::$container->get(ImageThumb::class);
+        $imageThumb = $items->imageThumb;
 
         $multiple = $this->multiple;
 

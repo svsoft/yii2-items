@@ -5,6 +5,8 @@ namespace svsoft\yii\items\forms;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
+use svsoft\yii\items\forms\validators\ItemExistValidator;
+use svsoft\yii\items\forms\validators\UniqueValidator;
 use svsoft\yii\items\helpers\PostFiles;
 use yii\base\DynamicModel;
 
@@ -49,7 +51,7 @@ class ItemForm extends DynamicModel
             $name = $field->getName();
 
             $rule = [];
-            switch($field->getType())
+            switch($field->getType()->getId())
             {
                 case Field::TYPE_STRING :
                     $rule = [$name, 'string', 'max'=>255];
@@ -67,9 +69,25 @@ class ItemForm extends DynamicModel
                 case Field::TYPE_FILE :
                     $rule = [$name, 'file', 'maxFiles'=>$field->getMultiple() ? 10 : 1];
                     break;
+                case Field::TYPE_ITEM :
+                    $rule = [$name, ItemExistValidator::class];
+                    break;
+
             }
 
-            $rules[$name] = $rule;
+            if ($rule)
+                $rules[$name] = $rule;
+
+            if ($field->getType()->getRequired())
+            {
+                $rules[$name.'-required'] = [$name, 'required'];
+            }
+
+            if ($field->getType()->getUnique())
+            {
+                $rules[$name.'-unique'] = [$name, UniqueValidator::class];
+            }
+
         }
 
         return $rules;
@@ -117,7 +135,12 @@ class ItemForm extends DynamicModel
 
         foreach($attributes as $name=>$value)
         {
-            $attributes[$name] = array_merge($this->getAttribute($name), $value);
+            $oldValue = $this->getAttribute($name);
+
+            if (is_array($oldValue))
+                $attributes[$name] = array_merge($oldValue, $value);
+            else
+                $attributes[$name] = $value;
         }
 
         $this->setAttributes($attributes);

@@ -2,7 +2,7 @@
 
 namespace svsoft\yii\items\entities;
 
-use svsoft\yii\items\exceptions\FieldException;
+use svsoft\yii\items\entities\types\FieldType;
 
 class Field
 {
@@ -12,30 +12,35 @@ class Field
     const TYPE_TEXT   = 'text';
     const TYPE_FILE   = 'file';
     const TYPE_HTML   = 'html';
+    const TYPE_ITEM   = 'item';
 
     protected $id;
     protected $name;
+    /**
+     * @var FieldType
+     */
     protected $type;
-    protected $multiple;
 
     static function types()
     {
-        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML];
+        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML, self::TYPE_ITEM];
     }
 
-    function __construct($id, $name, $type, $multiple)
+    function __construct($id, $name, FieldType $type)
     {
         $this->id = $id;
         $this->name = $name;
         $this->type = $type;
-        $this->multiple = $multiple;
     }
 
     function getMultiple()
     {
-        return $this->multiple;
+        return $this->type->getMultiple();
     }
 
+    /**
+     * @return FieldType
+     */
     function getType()
     {
         return $this->type;
@@ -61,11 +66,8 @@ class Field
         $this->multiple = (bool)$multiple;
     }
 
-    function setType($type)
+    function setType(FieldType $type)
     {
-        if (!in_array($type, self::types()))
-            throw new FieldException('Type "'.$type.'" not found');
-
         $this->type = $type;
     }
 }

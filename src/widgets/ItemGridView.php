@@ -25,7 +25,7 @@ class ItemGridView extends GridView
 
         foreach($this->itemType->getFields() as $field)
         {
-            if ($field->getType() != Field::TYPE_FILE)
+            if ($field->getType()->getId() != Field::TYPE_FILE)
                 $additionalColumns[] = $field->getName();
         }
 

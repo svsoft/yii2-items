@@ -5,24 +5,64 @@ namespace svsoft\yii\items\services;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\exceptions\ValidationErrorException;
-use svsoft\yii\items\factories\ItemFactory;
+use svsoft\yii\items\factories\ItemBuilder;
+use svsoft\yii\items\factories\ItemFormFactory;
 use svsoft\yii\items\forms\ItemFiller;
 use svsoft\yii\items\forms\ItemForm;
 use svsoft\yii\items\repositories\ItemQuery;
 use svsoft\yii\items\repositories\ItemRepository;
+use svsoft\yii\items\repositories\ItemTypeRepository;
 use yii\base\Component;
 
 /**
  * Class ItemService
  * @package svsoft\yii\items\services
- * @property-read ItemRepository $repository
  */
 class ItemManager extends Component
 {
     /**
-     * @var Items
+     * @var ItemRepository
      */
-    public $items;
+    protected $itemRepository;
+
+    /**
+     * @var ItemTypeRepository
+     */
+    protected $itemTypeRepository;
+
+    /**
+     * @return object|ItemRepository
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
+    protected function getItemRepository()
+    {
+        return \Yii::$container->get(ItemRepository::class);
+    }
+
+    /**
+     * @return object|ItemTypeRepository
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
+    protected function getItemTypeRepository()
+    {
+        return \Yii::$container->get(ItemTypeRepository::class);
+    }
+
+    /**
+     * @param $name
+     *
+     * @return ItemType
+     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
+    protected function getItemTypeByName($name)
+    {
+        return $this->getItemTypeRepository()->getByName($name);
+    }
+
 
     /**
      * @param $itemType
@@ -35,31 +75,31 @@ class ItemManager extends Component
     public function createQuery($itemType)
     {
         if (!$itemType instanceof ItemType)
-        {
-            $itemType = $this->items->getItemTypeRepository()->getByName($itemType);
-        }
+            $itemType = $this->getItemTypeByName($itemType);
 
         /** @var ItemQuery $query */
         $query = \Yii::createObject(ItemQuery::class, [$itemType]);
         return $query;
     }
 
+
     /**
-     * @return ItemRepository
+     * @param $itemType
+     *
+     * @return ItemForm
+     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
      * @throws \yii\base\InvalidConfigException
      * @throws \yii\di\NotInstantiableException
      */
-    protected function getRepository()
-    {
-        return $this->items->getItemRepository();
-    }
-
     public function createForm($itemType)
     {
         if (!$itemType instanceof ItemType)
-            $itemType = $this->items->getItemTypeRepository()->getByName($itemType);
+            $itemType = $this->getItemTypeByName($itemType);
 
-        return $this->items->getItemFormFactory()->build($itemType);
+        /** @var ItemFormFactory $factory */
+        $factory = \Yii::$container->get(ItemFormFactory::class);
+
+        return $factory->build($itemType);
     }
 
     public function update(ItemForm $itemForm)
@@ -71,7 +111,7 @@ class ItemManager extends Component
 
         (new ItemFiller())->fill($item, $itemForm);
 
-        $this->repository->update($item);
+        $this->getItemRepository()->update($item);
     }
 
     /**
@@ -87,11 +127,14 @@ class ItemManager extends Component
         if (!$itemForm->validate())
             throw new ValidationErrorException('Item validation error');
 
-        $item = (new ItemFactory($itemForm->itemType))->build();
+        /** @var ItemBuilder $builder */
+        $builder = \Yii::createObject(ItemBuilder::class);
+
+        $item = $builder->setItemType($itemForm->itemType)->build();
 
         (new ItemFiller())->fill($item, $itemForm);
 
-        $this->repository->create($item);
+        $this->getItemRepository()->create($item);
 
         return $item;
     }
@@ -103,6 +146,6 @@ class ItemManager extends Component
      */
     public function delete(Item $item)
     {
-        $this->repository->delete($item);
+        $this->getItemRepository()->delete($item);
     }
 }

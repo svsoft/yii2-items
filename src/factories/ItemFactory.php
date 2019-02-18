@@ -7,63 +7,37 @@ use svsoft\yii\items\entities\ItemType;
 
 class ItemFactory
 {
-    protected $attributes = [];
+    private $classes = [];
 
-    protected $id;
-
-    /**
-     * @var ItemType
-     */
-    protected $itemType;
-
-
-    function __construct(ItemType $itemType)
+    function __construct($classes = [])
     {
-        $this->itemType = $itemType;
+        $this->classes = $classes;
     }
 
-    private function generateId()
+    private function getClass(ItemType $itemType)
     {
-        return uniqid(bin2hex(random_bytes(1)));
+        if (isset($this->classes[$itemType->getName()]))
+            $class = $this->classes[$itemType->getName()];
+        else
+            $class = Item::class;
+
+        return $class;
     }
 
     /**
      * @param $id
-     *
-     * @return $this
-     */
-    function setId($id)
-    {
-        $this->id = $id;
-
-        return $this;
-    }
-
-    /**
+     * @param ItemType $itemType
      * @param $attributes
      *
-     * @return $this
+     * @return Item
+     * @throws \yii\base\InvalidConfigException
      */
-    function setAttributes($attributes)
+    function build($id, ItemType $itemType, $attributes)
     {
-        $this->attributes = $attributes;
-        return $this;
-    }
+        /** @var Item $instance */
+        $instance = \Yii::createObject($this->getClass($itemType), [$id, $itemType->getId(), $attributes]);
 
-    function build()
-    {
-        if (!$this->id)
-            $this->id = $this->generateId();
-
-        if (empty($this->attributes))
-        {
-            foreach($this->itemType->getFields() as $field)
-            {
-                $this->attributes[$field->getName()] = $field->getMultiple() ? [] : null;
-            }
-        }
-
-        return new Item($this->id, $this->itemType->getId(), $this->attributes);
+        return $instance;
     }
 
 }

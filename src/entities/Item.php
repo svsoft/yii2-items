@@ -88,4 +88,9 @@ class Item
 
         return $this->getAttribute($name);
     }
+
+    function __toString()
+    {
+        return $this->id;
+    }
 }

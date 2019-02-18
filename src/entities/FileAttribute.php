@@ -10,8 +10,20 @@ namespace svsoft\yii\items\entities;
 
 class FileAttribute extends AbstractFileAttribute
 {
-    function __construct($filename)
+    private $filePath;
+
+    function __construct($filePath)
     {
-        $this->filename = $filename;
+        $this->filePath = $filePath;
+    }
+
+    function getFilePath()
+    {
+        return $this->filePath;
+    }
+
+    function getFileName()
+    {
+        return pathinfo($this->filePath, PATHINFO_BASENAME);
     }
 }

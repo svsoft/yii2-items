@@ -5,6 +5,7 @@ namespace svsoft\yii\items\repositories\hydrators;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\factories\ItemFactory;
+use svsoft\yii\items\repositories\FileStorage;
 use svsoft\yii\items\repositories\ItemTypeRepository;
 use svsoft\yii\items\repositories\TableManager;
 
@@ -26,17 +27,24 @@ class ItemHydrator
      */
     private $tableManager;
 
-    function __construct(ItemTypeRepository $itemTypeRepository, TableManager $tableManager)
+    /**
+     * @var ItemFactory
+     */
+    private $itemFactory;
+
+
+    function __construct(FileStorage $fileStorage, ItemTypeRepository $itemTypeRepository, TableManager $tableManager, ItemFactory $itemFactory)
     {
         $this->tableManager = $tableManager;
         $this->itemTypeRepository = $itemTypeRepository;
+        $this->itemFactory = $itemFactory;
 
         $this->valueHydrators = [
             Field::TYPE_STRING => new ValueStringHydrator(),
             Field::TYPE_INT    => new ValueIntHydrator(),
             Field::TYPE_REAL   => new ValueRealHydrator(),
             Field::TYPE_TEXT   => new ValueStringHydrator(),
-            Field::TYPE_FILE   => new ValueFileHydrator(),
+            Field::TYPE_FILE   => new ValueFileHydrator($fileStorage),
             Field::TYPE_HTML   => new ValueStringHydrator(),
             Field::TYPE_ITEM   => new ValueItemHydrator($tableManager),
         ];
@@ -75,7 +83,7 @@ class ItemHydrator
             $attributes[$field->getName()] = $field->getMultiple() ? $hydrateValues : current($hydrateValues);
         }
 
-        $item = (new ItemFactory($itemType))->setId($itemRow['id'])->setAttributes($attributes)->build();
+        $item = $this->itemFactory->build($itemRow['id'], $itemType, $attributes);
 
         return $item;
     }

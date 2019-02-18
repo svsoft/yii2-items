@@ -7,15 +7,16 @@
 
 namespace svsoft\yii\items\widgets;
 
-use svsoft\yii\items\repositories\FileStorage;
 use svsoft\yii\items\services\ImageThumb;
-use svsoft\yii\items\services\Items;
 use yii\bootstrap\Html;
+use yii\helpers\ArrayHelper;
 use yii\widgets\InputWidget;
 
 class FileUploadWidget extends InputWidget
 {
     public $multiple = false;
+
+    public $files = [];
 
     public function init()
     {
@@ -31,13 +32,8 @@ class FileUploadWidget extends InputWidget
 
     protected function renderInput()
     {
-        /** @var Items $items */
-        $items = \Yii::$container->get(Items::class);
-
-        /** @var FileStorage $fileStorage */
-        $fileStorage = $items->getFileStorage();
         /** @var ImageThumb $imageThumb */
-        $imageThumb = $items->imageThumb;
+        $imageThumb = \Yii::$container->get(ImageThumb::class);
 
         $multiple = $this->multiple;
 
@@ -54,11 +50,11 @@ class FileUploadWidget extends InputWidget
             $html .= Html::beginTag('div',['class'=>'row']);
             foreach($values as  $key=>$value)
             {
-                $filePath = $fileStorage->getPath($value);
-                $src = $imageThumb->thumbByParams($filePath, 200, 200);
-
                 $html .= Html::beginTag('div',['class'=>'file-upload-widget-img-item col-lg-2 col-sm-3 col-xs-6']);
-                $html .= Html::img( $src );
+
+                if ($filePath = ArrayHelper::getValue($this->files, $value))
+                    $html .= Html::img( $imageThumb->thumbByParams($filePath, 200, 200) );
+
                 $html .= Html::activeHiddenInput($this->model, $this->attribute . ($multiple?"[$key]":''), ['value'=>$value]);
                 $html .= Html::tag('div',
                     Html::label(

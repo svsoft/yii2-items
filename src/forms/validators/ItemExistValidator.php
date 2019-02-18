@@ -2,8 +2,8 @@
 
 namespace svsoft\yii\items\forms\validators;
 
+use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\forms\ItemForm;
-use svsoft\yii\items\services\Items;
 use yii\base\InvalidConfigException;
 use yii\validators\Validator;
 use Yii;
@@ -11,6 +11,11 @@ use Yii;
 class ItemExistValidator extends Validator
 {
     public $message;
+
+    /**
+     * @var ItemType
+     */
+    public $itemType;
 
     public function init()
     {
@@ -33,17 +38,15 @@ class ItemExistValidator extends Validator
     {
         $value = $model->$attribute;
 
-        $itemType = $model->getItemType();
+        if ($model instanceof ItemForm)
+        {
+            $query = $model->getQuery($attribute);
+        }
+        else
+        {
+            throw new \Exception('Not realized');
+        }
 
-        if (!$fieldItemTypeId = $itemType->getFieldByName($attribute)->getType()->getParam('itemTypeId'))
-            throw new InvalidConfigException("Attribute \"{$attribute}\" must be type of item");
-
-        /** @var Items $items */
-        $items = Yii::$container->get(Items::class);
-
-        $fieldItemType = $items->getItemTypeById($fieldItemTypeId);
-
-        $query = $items->itemManager->createQuery($fieldItemType);
         $query->andId($value);
 
         $exists = $query->exists();

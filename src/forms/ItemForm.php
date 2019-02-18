@@ -8,7 +8,12 @@ use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\forms\validators\ItemExistValidator;
 use svsoft\yii\items\forms\validators\UniqueValidator;
 use svsoft\yii\items\helpers\PostFiles;
+use svsoft\yii\items\repositories\ItemQuery;
+use svsoft\yii\items\repositories\ItemTypeRepository;
+use svsoft\yii\items\services\ItemManager;
 use yii\base\DynamicModel;
+use yii\base\InvalidConfigException;
+use yii\helpers\ArrayHelper;
 
 /**
  * Class ItemForm
@@ -27,6 +32,11 @@ class ItemForm extends DynamicModel
      */
     protected $item;
 
+    /**
+     * @var ItemQuery
+     */
+    protected $queries;
+
     function __construct(ItemType $itemType, array $config = [])
     {
         $this->itemType = $itemType;
@@ -36,6 +46,33 @@ class ItemForm extends DynamicModel
             $attributes[] = $field->getName();
 
         parent::__construct($attributes, $config);
+    }
+
+    function init()
+    {
+        foreach($this->itemType->getFields() as $field)
+        {
+            $name = $field->getName();
+
+            if ($field->getType()->getId() === Field::TYPE_ITEM)
+            {
+                // Если тип сслыка на элемен, то добавляем запрос допустимых элементов для выбора
+
+                $fieldItemTypeId = $field->getType()->getParam('itemTypeId');
+
+                /** @var ItemTypeRepository $repo */
+                $repo = \Yii::$container->get(ItemTypeRepository::class);
+                /** @var ItemManager $itemManager */
+                $itemManager = \Yii::$container->get(ItemManager::class);
+
+                $fieldItemType = $repo->get($fieldItemTypeId);
+                $query = $itemManager->createQuery($fieldItemType);
+
+                $this->queries[$name] = $query;
+            }
+        }
+
+        parent::init();
     }
 
     function rules()
@@ -87,10 +124,27 @@ class ItemForm extends DynamicModel
             {
                 $rules[$name.'-unique'] = [$name, UniqueValidator::class];
             }
-
         }
 
         return $rules;
+    }
+
+    /**
+     * @param $attribute
+     * @param bool $clone
+     *
+     * @return ItemQuery
+     * @throws InvalidConfigException
+     */
+    function getQuery($attribute, $clone = true)
+    {
+        if (!$query = ArrayHelper::getValue($this->queries, $attribute))
+            throw new InvalidConfigException("Attribute \"{$attribute}\" must be type of item");
+
+        if ($clone)
+            return clone $query;
+
+        return $query;
     }
 
     /**

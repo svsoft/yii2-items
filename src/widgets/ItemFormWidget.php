@@ -5,6 +5,7 @@ namespace svsoft\yii\items\widgets;
 use dosamigos\ckeditor\CKEditor;
 use mihaildev\elfinder\ElFinder;
 use svsoft\yii\items\entities\Field;
+use svsoft\yii\items\entities\FileAttribute;
 use svsoft\yii\items\forms\ItemForm;
 use yii\base\InvalidCallException;
 use yii\widgets\ActiveField;
@@ -56,7 +57,7 @@ class ItemFormWidget extends ActiveForm
                     $fieldWidgets[$field->getName()] = $this->fieldHtml($field, $fieldWidget);
                     break;
                 case Field::TYPE_ITEM:
-                    $fieldWidgets[$field->getName()] = $this->fieldString($fieldWidget);
+                    $fieldWidgets[$field->getName()] = $this->fieldItem($field, $fieldWidget);
                     break;
             }
         }
@@ -94,7 +95,20 @@ class ItemFormWidget extends ActiveForm
         if (!isset($this->options['enctype']))
             $this->options['enctype'] = 'multipart/form-data';
 
-        return $this->field($this->itemForm, $field->getName())->widget(FileUploadWidget::class, ['multiple'=>$field->getMultiple()]);
+        $files = [];
+        if ($item = $this->itemForm->getItem())
+        {
+            $value = $item->getAttribute($field->getName());
+
+            $values = is_array($value) ? $value : [$value];
+            foreach($values as $value)
+            {
+                if ($value instanceof  FileAttribute)
+                    $files[$value->getFileName()] = $value->getFilePath();
+            }
+        }
+
+        return $this->field($this->itemForm, $field->getName())->widget(FileUploadWidget::class, ['multiple'=>$field->getMultiple(),'files' => $files]);
 
     }
 
@@ -116,4 +130,21 @@ class ItemFormWidget extends ActiveForm
         ]);
     }
 
+    function fieldItem(Field $field, ActiveField $activeField)
+    {
+        $query = $this->itemForm->getQuery($field->getName());
+
+        $items = $query->all();
+
+        $list = [];
+        if (!$field->getType()->getRequired())
+            $list[null] = \Yii::t('yii', '(not set)');
+
+        foreach($items as $item)
+        {
+            $list[$item->getId()] = (string)$item;
+        }
+
+        return $activeField->dropDownList($list, ['multiple'=>$field->getMultiple()]);
+    }
 }

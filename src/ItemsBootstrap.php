@@ -2,6 +2,7 @@
 
 namespace svsoft\yii\items;
 
+use svsoft\yii\items\decorators\Decorator;
 use svsoft\yii\items\factories\ItemFactory;
 use svsoft\yii\items\factories\ItemFormFactory;
 use svsoft\yii\items\repositories\FileStorage;
@@ -10,6 +11,7 @@ use svsoft\yii\items\repositories\hydrators\ItemTypeHydrator;
 use svsoft\yii\items\repositories\ItemRepository;
 use svsoft\yii\items\repositories\ItemTypeRepository;
 use svsoft\yii\items\repositories\TableManager;
+use svsoft\yii\items\services\Cacher;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 
@@ -52,6 +54,8 @@ class ItemsBootstrap implements BootstrapInterface
         $container->setSingleton(ItemTypeHydrator::class);
         $container->setSingleton(ItemFormFactory::class, [],[$this->formClasses]);
         $container->setSingleton(ItemFactory::class, [],[ $this->itemClasses]);
+        $container->setSingleton(Decorator::class);
+        $container->setSingleton(Cacher::class);
 
         return;
     }

@@ -12,6 +12,11 @@ class AbstractFileAttribute implements FileAttributeInterface
 {
     protected $filename;
 
+    function getFilePath()
+    {
+        return null;
+    }
+
     function getFileName()
     {
         return $this->filename;

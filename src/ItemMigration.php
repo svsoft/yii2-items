@@ -8,7 +8,6 @@ use svsoft\yii\items\factories\FieldTypeBuilder;
 use svsoft\yii\items\factories\ItemTypeBuilder;
 use svsoft\yii\items\repositories\ItemTypeRepository;
 use svsoft\yii\items\services\ItemManager;
-use svsoft\yii\items\services\Items;
 use svsoft\yii\items\services\ItemTypeManager;
 use yii\base\Component;
 use yii\db\Connection;
@@ -48,15 +47,11 @@ abstract class ItemMigration extends Component implements MigrationInterface
 
     function init()
     {
-        /** @var Items $items */
-        $items = \Yii::$container->get(Items::class);
+        $c = \Yii::$container;
 
-        $this->repository = $items->getItemTypeRepository();
-
-        $this->itemManager = $items->itemManager;
-        $this->itemTypeService = \Yii::$container->get(ItemTypeManager::class);
-
-        $this->db = \Yii::$container->get(Connection::class);
+        $this->repository = $c->get(ItemTypeRepository::class);
+        $this->itemManager = $c->get(ItemManager::class);
+        $this->itemTypeService = $c->get(ItemTypeManager::class);
 
         parent::init();
     }
@@ -209,7 +204,7 @@ abstract class ItemMigration extends Component implements MigrationInterface
         $time = $this->beginCommand("delete item type {$itemTypeName}");
 
         $itemType = $this->repository->getByName($itemTypeName);
-        $this->itemTypeService->deleteItemType($itemType);
+        $this->itemTypeService->delete($itemType);
 
         $this->endCommand($time);
     }

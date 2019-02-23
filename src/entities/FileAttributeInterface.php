@@ -9,4 +9,6 @@ namespace svsoft\yii\items\entities;
 interface FileAttributeInterface
 {
     function getFileName();
+
+    function getFilePath();
 }

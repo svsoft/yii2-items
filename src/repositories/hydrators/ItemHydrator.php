@@ -97,6 +97,7 @@ class ItemHydrator
         $itemData = [
             'id'=>$item->getId(),
             'item_type_key'=>$this->tableManager->getTableItemType()->getKey($itemType->getId()),
+            'values' => [],
         ];
         if ($itemKey)
             $itemData['key'] = $itemKey;

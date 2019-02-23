@@ -14,6 +14,7 @@ use svsoft\yii\items\repositories\TableManager;
 use svsoft\yii\items\services\Cacher;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
+use yii\console\Application;
 
 class ItemsBootstrap implements BootstrapInterface
 {
@@ -36,6 +37,12 @@ class ItemsBootstrap implements BootstrapInterface
     public $itemClasses = [];
 
 
+    /**
+     * @param \yii\base\Application $app
+     *
+     * @throws InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
     function bootstrap($app)
     {
         if (!$this->fileStoragePath)
@@ -56,6 +63,19 @@ class ItemsBootstrap implements BootstrapInterface
         $container->setSingleton(ItemFactory::class, [],[ $this->itemClasses]);
         $container->setSingleton(Decorator::class);
         $container->setSingleton(Cacher::class);
+
+        if ($app instanceof Application)
+        {
+            if (empty($app->controllerMap['migrate']['class']))
+            {
+
+                $app->controllerMap['migrate'] = [
+                    'class' => 'yii\console\controllers\MigrateController',
+                ];
+            }
+
+            $app->controllerMap['migrate']['migrationNamespaces'][] = 'svsoft\yii\items\migrations';
+        }
 
         return;
     }

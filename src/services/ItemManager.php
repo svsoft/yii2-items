@@ -30,6 +30,9 @@ class ItemManager extends Component
      */
     protected $itemTypeRepository;
 
+    /** @var Cacher */
+    protected $cacher;
+
     /**
      * @return object|ItemRepository
      * @throws \yii\base\InvalidConfigException
@@ -48,6 +51,16 @@ class ItemManager extends Component
     protected function getItemTypeRepository()
     {
         return \Yii::$container->get(ItemTypeRepository::class);
+    }
+
+    /**
+     * @return Cacher|object
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
+    protected function getCacher()
+    {
+        return \Yii::$container->get(Cacher::class);
     }
 
     /**
@@ -112,6 +125,8 @@ class ItemManager extends Component
         (new ItemFiller())->fill($item, $itemForm);
 
         $this->getItemRepository()->update($item);
+
+        $this->getCacher()->cleanByItemType($item->getItemTypeId());
     }
 
     /**
@@ -135,6 +150,8 @@ class ItemManager extends Component
         (new ItemFiller())->fill($item, $itemForm);
 
         $this->getItemRepository()->create($item);
+
+        $this->getCacher()->cleanByItemType($item->getItemTypeId());
 
         return $item;
     }

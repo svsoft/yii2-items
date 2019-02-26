@@ -18,11 +18,13 @@ class ValueItemHydrator implements ValueHydratorInterface
 
     function hydrate($value)
     {
-        return $this->tableManager->getTableItem()->getId($value);
+        return $value;
+        //return $this->tableManager->getTableItem()->getId($value);
     }
 
     function dehytrate($value)
     {
-        return $this->tableManager->getTableItem()->getKey($value);
+        return $value;
+        //return $this->tableManager->getTableItem()->getKey($value);
     }
 }

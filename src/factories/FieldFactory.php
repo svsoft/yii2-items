@@ -29,12 +29,16 @@ class FieldFactory
         return $this;
     }
 
+    /**
+     * @return Field
+     * @throws FieldException
+     */
     function build()
     {
         if (empty($this->type))
             throw new FieldException('Type must be set');
 
-        return new Field($this->generateId(), $this->name, $this->type, $this->multiple);
+        return new Field($this->generateId(), $this->name, $this->type);
     }
 
 }

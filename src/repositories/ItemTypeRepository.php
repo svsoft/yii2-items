@@ -176,9 +176,9 @@ class ItemTypeRepository
      */
     private function getAllFromDb()
     {
-        $itemTypeRows = $this->tableManager->getTableItemType()->query()->indexBy('key')->all();
+        $itemTypeRows = $this->tableManager->getTableItemType()->getAll();
 
-        $fieldRows = $this->tableManager->getTableField()->query()->all();
+        $fieldRows = $this->tableManager->getTableField()->getAll();
 
         foreach($fieldRows as $fieldRow)
         {

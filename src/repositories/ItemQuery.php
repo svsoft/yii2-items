@@ -9,6 +9,8 @@ use svsoft\yii\items\exceptions\FieldNotFoundException;
 use svsoft\yii\items\repositories\hydrators\ItemHydrator;
 use svsoft\yii\items\repositories\tables\TableItem;
 use svsoft\yii\items\repositories\tables\TableValue;
+use svsoft\yii\items\services\Cacher;
+use yii\db\Connection;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
 
@@ -32,11 +34,24 @@ class ItemQuery extends Query
 
     private $fieldNames = [];
 
-    function __construct(ItemType $itemType, TableManager $tableManager, ItemHydrator $itemHydrator)
+    /**
+     * @var Cacher
+     */
+    protected $cacher;
+
+    /**
+     * @var bool
+     */
+    protected $useCache;
+
+    function __construct(ItemType $itemType, TableManager $tableManager, ItemHydrator $itemHydrator, Cacher $cacher)
     {
         $this->tableManager = $tableManager;
         $this->itemType = $itemType;
         $this->itemHydrator = $itemHydrator;
+        $this->cacher = $cacher;
+
+        $this->useCache = false;
 
         parent::__construct([]);
     }
@@ -135,6 +150,26 @@ class ItemQuery extends Query
      */
     function populate($rows)
     {
+        if (!$this->useCache)
+            return $this->populateInternal($rows);
+
+        $cacheKey = md5(serialize($this));
+        if (($result = $this->cacher->get($cacheKey))===false)
+        {
+            $result = $this->populateInternal($rows);
+            $this->cacher->set($cacheKey, $result, $this->itemType->getId());
+        }
+
+        return $result;
+    }
+
+    /**
+     * @param $rows
+     *
+     * @return Item[]
+     */
+    protected function populateInternal($rows)
+    {
         $itemRows = [];
         foreach ($rows as $row)
             $itemRows[$row['key']] = $row;
@@ -152,20 +187,14 @@ class ItemQuery extends Query
         /** @var Item[] $items */
         $items = [];
         foreach($itemRows as $itemRow)
-        {
-            $item = $this->itemHydrator->hydrate($itemRow);
+            $items[] = $this->itemHydrator->hydrate($itemRow);
 
-            $items[] = $item;
-        }
-
-        if ($this->indexBy === null) {
+        if ($this->indexBy === null)
             return $items;
-        }
 
         $result = [];
-        foreach ($items as $item) {
+        foreach ($items as $item)
             $result[$item->getProperty($this->indexBy)] = $item;
-        }
 
         return $result;
     }
@@ -210,4 +239,27 @@ class ItemQuery extends Query
 
         return null;
     }
+
+    /**
+     * Queries a scalar value by setting [[select]] first.
+     * Restores the value of select to make this query reusable.
+     * @param string|\yii\db\ExpressionInterface $selectExpression
+     * @param Connection|null $db
+     * @return bool|string
+     */
+    protected function queryScalar($selectExpression, $db)
+    {
+        if ($this->emulateExecution) {
+            return null;
+        }
+
+        $command = (new Query())
+            ->select([$selectExpression])
+            ->from(['c' => $this])
+            ->createCommand($db);
+        $this->setCommandCache($command);
+
+        return $command->queryScalar();
+    }
+
 }

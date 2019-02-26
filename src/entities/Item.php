@@ -36,7 +36,7 @@ class Item
     function getAttribute($name)
     {
         if (!$this->hasAttribute($name))
-            throw new ItemAttributeNotFound('Item attribute not found');
+            throw new ItemAttributeNotFound("Item attribute \"{$name}\" not found");
 
         return $this->attributes[$name];
     }

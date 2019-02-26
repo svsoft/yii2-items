@@ -54,11 +54,11 @@ class m190118_152700_create_tables extends Migration
             'value_int'=>$this->integer(),
             'value_text'=>$this->text(),
             'value_real'=>$this->decimal(10,4),
-            'value_item' => $this->integer()->unsigned(),
+            'value_item' => $this->string(15),
         ]);
 
         $this->addForeignKey($value . '_item_key', $value, 'item_key', $item, 'key');
-        $this->addForeignKey($value . '_value_item', $value, 'value_item', $item, 'key');
+        $this->addForeignKey($value . '_value_item', $value, 'value_item', $item, 'id');
     }
 
     /**

@@ -55,6 +55,9 @@ class m190118_152700_create_tables extends Migration
             'value_text'=>$this->text(),
             'value_real'=>$this->decimal(10,4),
             'value_item' => $this->string(15),
+            'value_date' => $this->date(),
+            'value_datetime' => $this->dateTime(),
+            'value_timestamp' => $this->timestamp(),
         ]);
 
         $this->addForeignKey($value . '_item_key', $value, 'item_key', $item, 'key');

@@ -13,6 +13,7 @@ class Field
     const TYPE_FILE   = 'file';
     const TYPE_HTML   = 'html';
     const TYPE_ITEM   = 'item';
+    const TYPE_DATE   = 'date';
 
     protected $id;
     protected $name;
@@ -23,7 +24,7 @@ class Field
 
     static function types()
     {
-        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML, self::TYPE_ITEM];
+        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML, self::TYPE_ITEM, self::TYPE_DATE];
     }
 
     function __construct($id, $name, FieldType $type)

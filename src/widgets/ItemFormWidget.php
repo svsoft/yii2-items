@@ -59,6 +59,9 @@ class ItemFormWidget extends ActiveForm
                 case Field::TYPE_ITEM:
                     $fieldWidgets[$field->getName()] = $this->fieldItem($field, $fieldWidget);
                     break;
+                case Field::TYPE_DATE:
+                    $fieldWidgets[$field->getName()] = $this->fieldDate($field, $fieldWidget);
+                    break;
             }
         }
 
@@ -146,5 +149,19 @@ class ItemFormWidget extends ActiveForm
         }
 
         return $activeField->dropDownList($list, ['multiple'=>$field->getMultiple()]);
+    }
+
+    function fieldDate(Field $field, ActiveField $activeField)
+    {
+        return $activeField->widget(\kartik\widgets\DatePicker::class,[
+            'layout' => '{picker}{input}',
+            'pluginOptions' => [
+                'autoclose'=>true,
+
+                'format' => 'yyyy-mm-dd',
+//                'minViewMode'=> 'months',
+//                'format' => 'yyyy-mm',
+            ]
+        ]);
     }
 }

@@ -47,6 +47,7 @@ class ItemHydrator
             Field::TYPE_FILE   => new ValueFileHydrator($fileStorage),
             Field::TYPE_HTML   => new ValueStringHydrator(),
             Field::TYPE_ITEM   => new ValueItemHydrator($tableManager),
+            Field::TYPE_DATE   => new ValueDateHydrator(),
         ];
     }
 

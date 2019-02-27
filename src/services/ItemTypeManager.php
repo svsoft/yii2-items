@@ -101,102 +101,99 @@ class ItemTypeManager
      * @throws \yii\db\Exception
      * @throws \yii\di\NotInstantiableException
      */
-    public function updateFromData($data)
+    public function updateFromData($itemTypeData)
     {
         /** @var FieldTypeFactory $fieldTypeFactory */
         $fieldTypeFactory = \Yii::$container->get(FieldTypeFactory::class);
-        foreach($data as $itemTypeData)
+
+        $itemTypeId   = ArrayHelper::getValue($itemTypeData, 'id');
+        $itemTypeName = $itemTypeData['name'];
+
+        if (!$itemTypeName)
+            throw new ItemTypeException('Item type name must be set');
+        try
         {
-            $itemTypeId   = ArrayHelper::getValue($itemTypeData, 'id');
-            $itemTypeName = $itemTypeData['name'];
-
-            if (!$itemTypeName)
-                throw new ItemTypeException('Item type name must be set');
-            try
-            {
-                if ($itemTypeId)
-                    $itemType = $this->repository->get($itemTypeId);
-                else
-                    $itemType = $this->repository->getByName($itemTypeName);
-
-                $itemTypeId = $itemType->getId();
-            }
-            catch(ItemTypeNotFoundException $exception)
-            {
-                $itemTypeId = null;
-                $itemType = null;
-            }
-
-
-            $fields = [];
-            foreach($itemTypeData['fields'] as $fieldData)
-            {
-                $fieldId = ArrayHelper::getValue($fieldData, 'id');
-                $fieldName = $fieldData['name'];
-
-                if (!$fieldName)
-                    throw new FieldException('Field name must be set');
-
-                /** @var FieldTypeBuilder $builder */
-                //$builder = \Yii::createObject(FieldTypeBuilder::class);
-                if (is_array($fieldData['type']))
-                {
-                    $typeId = $fieldData['type']['id'];
-                    $params = ArrayHelper::getValue($fieldData['type'],'params',[]);
-
-                }
-                else
-                {
-                    $typeId = $fieldData['type'];
-                    $params =  [];
-                }
-
-                if (isset($params['itemTypeName']))
-                {
-                    $fieldItemType = $this->repository->getByName($params['itemTypeName']);
-                    unset($params['itemTypeName']);
-                    $params['itemTypeId'] = $fieldItemType->getId();
-                }
-
-                $type = $fieldTypeFactory->build($typeId, $params);
-
-                /** @var FieldBuilder $fieldBuilder */
-                $fieldBuilder = \Yii::createObject(FieldBuilder::class);
-
-                if ($itemType)
-                {
-                    try
-                    {
-                        if ($fieldId)
-                            $field = $itemType->getField($fieldId);
-                        else
-                            $field = $itemType->getFieldByName($fieldName);
-
-                        $fieldId = $field->getId();
-                    }
-                    catch(FieldNotFoundException $exception)
-                    {
-                        $fieldId = null;
-                    }
-
-                }
-
-                $field = $fieldBuilder->setId($fieldId)->setName($fieldName)->setType($type)->build();
-
-                $fields[] = $field;
-            }
-
-            /** @var ItemTypeBuilder $builder */
-            $builder = \Yii::createObject(ItemTypeBuilder::class);
-
-
-            $itemType = $builder->setId($itemTypeId)->setName($itemTypeName)->setFields($fields)->build();
-
-            if (!$itemTypeId)
-                $this->create($itemType);
+            if ($itemTypeId)
+                $itemType = $this->repository->get($itemTypeId);
             else
-                $this->update($itemType);
+                $itemType = $this->repository->getByName($itemTypeName);
+
+            $itemTypeId = $itemType->getId();
         }
+        catch(ItemTypeNotFoundException $exception)
+        {
+            $itemTypeId = null;
+            $itemType = null;
+        }
+
+        $fields = [];
+        foreach($itemTypeData['fields'] as $fieldData)
+        {
+            $fieldId = ArrayHelper::getValue($fieldData, 'id');
+            $fieldName = $fieldData['name'];
+
+            if (!$fieldName)
+                throw new FieldException('Field name must be set');
+
+            /** @var FieldTypeBuilder $builder */
+            //$builder = \Yii::createObject(FieldTypeBuilder::class);
+            if (is_array($fieldData['type']))
+            {
+                $typeId = $fieldData['type']['id'];
+                $params = ArrayHelper::getValue($fieldData['type'],'params',[]);
+
+            }
+            else
+            {
+                $typeId = $fieldData['type'];
+                $params =  [];
+            }
+
+            if (isset($params['itemTypeName']))
+            {
+                $fieldItemType = $this->repository->getByName($params['itemTypeName']);
+                unset($params['itemTypeName']);
+                $params['itemTypeId'] = $fieldItemType->getId();
+            }
+
+            $type = $fieldTypeFactory->build($typeId, $params);
+
+            /** @var FieldBuilder $fieldBuilder */
+            $fieldBuilder = \Yii::createObject(FieldBuilder::class);
+
+            if ($itemType)
+            {
+                try
+                {
+                    if ($fieldId)
+                        $field = $itemType->getField($fieldId);
+                    else
+                        $field = $itemType->getFieldByName($fieldName);
+
+                    $fieldId = $field->getId();
+                }
+                catch(FieldNotFoundException $exception)
+                {
+                    $fieldId = null;
+                }
+
+            }
+
+            $field = $fieldBuilder->setId($fieldId)->setName($fieldName)->setType($type)->build();
+
+            $fields[] = $field;
+        }
+
+        /** @var ItemTypeBuilder $builder */
+        $builder = \Yii::createObject(ItemTypeBuilder::class);
+
+
+        $itemType = $builder->setId($itemTypeId)->setName($itemTypeName)->setFields($fields)->build();
+
+        if (!$itemTypeId)
+            $this->create($itemType);
+        else
+            $this->update($itemType);
     }
 
     function update(ItemType $itemType)

@@ -23,6 +23,8 @@ class TableValue extends AbstractTableValue
             Field::TYPE_HTML   => 'value_text',
             Field::TYPE_ITEM   => 'value_item',
             Field::TYPE_DATE   => 'value_date',
+            Field::TYPE_DATETIME => 'value_datetime',
+            Field::TYPE_BOOLEAN => 'value_tiny_int',
         ];
 
         parent::__construct($db);

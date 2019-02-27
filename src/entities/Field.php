@@ -14,6 +14,9 @@ class Field
     const TYPE_HTML   = 'html';
     const TYPE_ITEM   = 'item';
     const TYPE_DATE   = 'date';
+    const TYPE_DATETIME   = 'datetime';
+    const TYPE_BOOLEAN   = 'boolean';
+    const TYPE_TIMESTAMP   = 'timestamp';
 
     protected $id;
     protected $name;
@@ -24,7 +27,8 @@ class Field
 
     static function types()
     {
-        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML, self::TYPE_ITEM, self::TYPE_DATE];
+        return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML,
+                self::TYPE_ITEM, self::TYPE_DATE, self::TYPE_DATETIME, self::TYPE_BOOLEAN, self::TYPE_TIMESTAMP];
     }
 
     function __construct($id, $name, FieldType $type)

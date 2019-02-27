@@ -48,6 +48,8 @@ class ItemHydrator
             Field::TYPE_HTML   => new ValueStringHydrator(),
             Field::TYPE_ITEM   => new ValueItemHydrator($tableManager),
             Field::TYPE_DATE   => new ValueDateHydrator(),
+            Field::TYPE_DATETIME  => new ValueDatetimeHydrator(),
+            Field::TYPE_BOOLEAN  => new ValueBooleanHydrator(),
         ];
     }
 

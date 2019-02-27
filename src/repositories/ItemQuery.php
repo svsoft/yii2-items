@@ -44,8 +44,11 @@ class ItemQuery extends Query
      */
     protected $useCache;
 
-    function __construct(ItemType $itemType, TableManager $tableManager, ItemHydrator $itemHydrator, Cacher $cacher)
+    function __construct($itemType, TableManager $tableManager, ItemHydrator $itemHydrator, Cacher $cacher, ItemTypeRepository $itemTypeRepository)
     {
+        if (!$itemType instanceof ItemType)
+            $itemType = $itemTypeRepository->getByName($itemType);
+
         $this->tableManager = $tableManager;
         $this->itemType = $itemType;
         $this->itemHydrator = $itemHydrator;

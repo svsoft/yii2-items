@@ -109,6 +109,15 @@ class ItemForm extends DynamicModel
                 case Field::TYPE_ITEM :
                     $rule = [$name, ItemExistValidator::class];
                     break;
+                case Field::TYPE_DATE :
+                    $rule = [$name, 'date', 'format'=>'php:Y-m-d'];
+                    break;
+                case Field::TYPE_DATETIME :
+                    $rule = [$name, 'date', 'format'=>'php:Y-m-d H:i:s'];
+                    break;
+                case Field::TYPE_BOOLEAN :
+                    $rule = [$name, 'boolean'];
+                    break;
 
             }
 

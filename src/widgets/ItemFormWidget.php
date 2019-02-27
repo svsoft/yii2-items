@@ -62,6 +62,12 @@ class ItemFormWidget extends ActiveForm
                 case Field::TYPE_DATE:
                     $fieldWidgets[$field->getName()] = $this->fieldDate($field, $fieldWidget);
                     break;
+                case Field::TYPE_DATETIME:
+                    $fieldWidgets[$field->getName()] = $this->fieldDatetime($field, $fieldWidget);
+                    break;
+                case Field::TYPE_BOOLEAN:
+                    $fieldWidgets[$field->getName()] = $this->fieldBoolean($field, $fieldWidget);
+                    break;
             }
         }
 
@@ -163,5 +169,26 @@ class ItemFormWidget extends ActiveForm
 //                'format' => 'yyyy-mm',
             ]
         ]);
+    }
+
+    function fieldDatetime(Field $field, ActiveField $activeField)
+    {
+        return $activeField->widget(\kartik\widgets\DateTimePicker::class,[
+            'layout' => '{picker}{input}',
+            'pluginOptions' => [
+                'autoclose'=>true,
+                'format' => 'yyyy-mm-dd hh:mm:ss',
+            ]
+        ]);
+    }
+
+    /**
+     * @param ActiveField $fieldWidget
+     *
+     * @return ActiveField
+     */
+    function fieldBoolean(Field $field, ActiveField $activeField)
+    {
+        return $activeField->checkbox();
     }
 }

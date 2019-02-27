@@ -7,7 +7,6 @@ use svsoft\yii\items\exceptions\FieldNotFoundException;
 use svsoft\yii\items\exceptions\ItemTypeException;
 use svsoft\yii\items\exceptions\ItemTypeNotFoundException;
 use svsoft\yii\items\factories\FieldBuilder;
-use svsoft\yii\items\factories\FieldTypeBuilder;
 use svsoft\yii\items\factories\FieldTypeFactory;
 use svsoft\yii\items\factories\ItemTypeBuilder;
 use svsoft\yii\items\repositories\ItemTypeRepository;
@@ -37,32 +36,96 @@ class ItemTypeUpdater
         $this->itemTypeManager = $itemTypeManager;
     }
 
-//    function normalize($itemTypesData)
-//    {
-//        foreach($itemTypesData as $key=>$itemTypeData)
-//        {
-//            $itemTypeDataNormalize = [];
-//            if (is_string($key))
-//            {
-//                $name = $key;
-//            }
-//            else
-//            {
-//                $name = ArrayHelper::getValue($itemTypeData,'name');
-//            }
-//
-//            if (isset($itemTypeData['fields']))
-//            {
-//
-//            }
-//
-//            $itemTypesData['name'] = $name;
-//        }
-//
-//    }
-
-    function updateItemType($itemTypeData)
+    protected function normalize($itemTypesData)
     {
+        $itemTypesDataNormalize = [];
+        foreach($itemTypesData as $key=>$itemTypeData)
+        {
+            $name = is_string($key) ? $key : '';
+
+            $itemTypesDataNormalize[] = $this->normalizeItemType($itemTypeData, $name);
+        }
+
+        return $itemTypesDataNormalize;
+    }
+
+    protected function normalizeItemType($data, $name = null)
+    {
+        if (isset($data['fields']))
+        {
+            $fields = $data['fields'];
+            $dataNormalize = $data;
+            unset($dataNormalize['fields']);
+        }
+        else
+        {
+            $fields = $data;
+            $dataNormalize =[];
+        }
+        if ($name)
+            $dataNormalize['name'] = $name;
+
+        foreach($fields as $fieldKey=>$fieldData)
+        {
+            $fieldName = is_numeric($fieldKey) ? null : $fieldKey;
+            $dataNormalize['fields'][] = $this->normalizeField($fieldData, $fieldName);
+        }
+
+        return $dataNormalize;
+
+    }
+
+    protected function normalizeField($data, $name = null)
+    {
+        if (is_array($data))
+        {
+            $normalizeData = $data;
+            unset($normalizeData['type']);
+            $normalizeData['type'] = $this->normalizeType($data['type']);
+
+        }
+        else
+        {
+            $normalizeData['type'] = $this->normalizeType($data);
+        }
+
+        if ($name)
+            $normalizeData['name'] = $name;
+
+        return $normalizeData;
+    }
+
+    protected function normalizeType($data)
+    {
+        if (is_array($data))
+        {
+            $normalizeData = $data;
+        }
+        else
+        {
+            $normalizeData = [
+                'id' => $data,
+            ];
+        }
+
+        return $normalizeData;
+    }
+
+    public function update($itemTypesData)
+    {
+        $itemTypesData = $this->normalize($itemTypesData);
+
+        foreach($itemTypesData as $itemTypeData)
+        {
+            $this->updateItemType($itemTypeData);
+        }
+    }
+
+    function updateItemType($itemTypeData, $normalize = false)
+    {
+        if ($normalize)
+            $itemTypeData = $this->normalizeItemType($itemTypeData);
+
         $itemTypeId   = ArrayHelper::getValue($itemTypeData, 'id');
         $itemTypeName = $itemTypeData['name'];
 
@@ -92,19 +155,10 @@ class ItemTypeUpdater
             if (!$fieldName)
                 throw new FieldException('Field name must be set');
 
-            /** @var FieldTypeBuilder $builder */
-            //$builder = \Yii::createObject(FieldTypeBuilder::class);
-            if (is_array($fieldData['type']))
-            {
-                $typeId = $fieldData['type']['id'];
-                $params = ArrayHelper::getValue($fieldData['type'],'params',[]);
-
-            }
-            else
-            {
-                $typeId = $fieldData['type'];
-                $params =  [];
-            }
+            $typeData = $fieldData['type'];
+            $typeId = $typeData['id'];
+            $params = $typeData;
+            unset($params['id']);
 
             if (isset($params['itemTypeName']))
             {

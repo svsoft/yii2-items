@@ -53,7 +53,16 @@ class FileUploadWidget extends InputWidget
                 $html .= Html::beginTag('div',['class'=>'file-upload-widget-img-item col-lg-2 col-sm-3 col-xs-6']);
 
                 if ($filePath = ArrayHelper::getValue($this->files, $value))
-                    $html .= Html::img( $imageThumb->thumbByParams($filePath, 200, 200) );
+                {
+                    if (getimagesize($filePath) === false)
+                    {
+                        $html .= Html::tag( 'div', pathinfo($filePath, PATHINFO_BASENAME), ['class'=>'filename']);
+                    }
+                    else
+                    {
+                        $html .= Html::img( $imageThumb->thumbByParams($filePath, 200, 200) );
+                    }
+                }
 
                 $html .= Html::activeHiddenInput($this->model, $this->attribute . ($multiple?"[$key]":''), ['value'=>$value]);
                 $html .= Html::tag('div',

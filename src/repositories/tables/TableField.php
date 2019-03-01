@@ -35,4 +35,10 @@ class TableField extends AbstractTableValue
     {
         return self::TABLE;
     }
+
+    function resetCache()
+    {
+        $this->all = null;
+    }
+
 }

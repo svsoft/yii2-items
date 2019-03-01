@@ -41,6 +41,9 @@ class ItemTypeUpdater
         $itemTypesDataNormalize = [];
         foreach($itemTypesData as $key=>$itemTypeData)
         {
+            if ($itemTypeData === null)
+                continue;
+
             $name = is_string($key) ? $key : '';
 
             $itemTypesDataNormalize[] = $this->normalizeItemType($itemTypeData, $name);
@@ -113,6 +116,15 @@ class ItemTypeUpdater
 
     public function update($itemTypesData)
     {
+        foreach($itemTypesData as $key=>$itemTypeData)
+        {
+            if ($itemTypeData === null && !is_numeric($key))
+            {
+                $itemType = $this->repository->getByName($key);
+                $this->itemTypeManager->delete($itemType);
+            }
+        }
+
         $itemTypesData = $this->normalize($itemTypesData);
 
         foreach($itemTypesData as $itemTypeData)

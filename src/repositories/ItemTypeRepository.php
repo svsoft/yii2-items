@@ -151,6 +151,9 @@ class ItemTypeRepository
     {
         $this->_itemTypes = null;
         $this->_itemTypeIndex = null;
+
+        $this->tableManager->getTableItemType()->resetCache();
+        $this->tableManager->getTableField()->resetCache();
     }
 
     /**
@@ -326,5 +329,26 @@ class ItemTypeRepository
             $t->rollBack();
             throw $exception;
         }
+    }
+
+    /**
+     * @param ItemType $itemType
+     *
+     * @return ItemType[]
+     * @throws ItemTypeNotFoundException
+     */
+    public function getRelatedItemTypes(ItemType $itemType)
+    {
+        $key = $this->tableManager->getTableItemType()->getKey($itemType->getId());
+        $fieldRows = $this->tableManager->getTableField()->query()->andWhere(['field_type_item_type_key'=>$key])->all();
+
+        $itemTypes = [];
+        foreach($fieldRows as $fieldRow)
+        {
+            $id = $this->tableManager->getTableItemType()->getId($fieldRow['item_type_key']);
+            $itemTypes[] = $this->get($id);
+        }
+
+        return $itemTypes;
     }
 }

@@ -218,5 +218,10 @@ class ItemForm extends DynamicModel
 
         return $attributes[$name];
     }
+
+    function getAttributeLabel($attribute)
+    {
+        return \Yii::t('items', parent::getAttributeLabel($attribute));
+    }
 }
 

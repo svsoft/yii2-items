@@ -39,7 +39,7 @@ class FileUploadWidget extends InputWidget
 
         $inputName = Html::getInputName($this->model, $this->attribute) . ($multiple ? '[]' : '');
 
-        $html = Html::input('file', $inputName, null, ['multiple'=>$multiple]);
+        $html = Html::input('file', $inputName, null, ['multiple' => $multiple]);
 
         $attributeValue = $this->model->{$this->attribute};
 
@@ -52,9 +52,9 @@ class FileUploadWidget extends InputWidget
             {
                 $html .= Html::beginTag('div',['class'=>'file-upload-widget-img-item col-lg-2 col-sm-3 col-xs-6']);
 
-                if ($filePath = ArrayHelper::getValue($this->files, $value))
+                if ($filePath = ArrayHelper::getValue($this->files, $value) )
                 {
-                    if (getimagesize($filePath) === false)
+                    if (!file_exists($filePath) || getimagesize($filePath) === false)
                     {
                         $html .= Html::tag( 'div', pathinfo($filePath, PATHINFO_BASENAME), ['class'=>'filename']);
                     }

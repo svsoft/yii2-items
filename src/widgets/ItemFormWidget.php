@@ -18,7 +18,6 @@ class ItemFormWidget extends ActiveForm
      */
     public $itemForm;
 
-
     public $enableClientValidation = false;
 
     function init()

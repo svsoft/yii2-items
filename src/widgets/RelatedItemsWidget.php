@@ -70,7 +70,9 @@ class RelatedItemsWidget extends Widget
     {
         $itemId = $this->item->getId();
 
-        return Html::a($itemTypeName, [$this->listRoute, 'type'=>$itemTypeName, 'relation'=>"{$fieldName}-{$itemId}"],['class'=>'btn btn-default']);
+        $itemTypeLabel = \yii\helpers\Inflector::camel2words( $itemTypeName, true);
+
+        return Html::a(\Yii::t('items', $itemTypeLabel . ' items'), [$this->listRoute, 'type'=>$itemTypeName, 'relation'=>"{$fieldName}-{$itemId}"],['class'=>'btn btn-default']);
     }
 
 }

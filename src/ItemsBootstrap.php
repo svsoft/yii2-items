@@ -15,6 +15,7 @@ use svsoft\yii\items\services\Cacher;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\console\Application;
+use yii\i18n\PhpMessageSource;
 
 class ItemsBootstrap implements BootstrapInterface
 {
@@ -45,29 +46,28 @@ class ItemsBootstrap implements BootstrapInterface
      */
     function bootstrap($app)
     {
-        if (!$this->fileStoragePath)
+        if (!$this->fileStoragePath) {
             throw new InvalidConfigException('Property fileStoragePath must be set');
+        }
 
         $this->fileStoragePath = \Yii::getAlias($this->fileStoragePath);
 
         $container = \Yii::$container;
 
-        $fileStorage = $container->get(FileStorage::class,[$this->fileStoragePath]);
+        $fileStorage = $container->get(FileStorage::class, [$this->fileStoragePath]);
 
         $container->setSingleton(TableManager::class, [], [\Yii::$app->db]);
         $container->setSingleton(ItemTypeRepository::class, [], [$fileStorage]);
-        $container->setSingleton(ItemRepository::class,[], [$fileStorage]);
+        $container->setSingleton(ItemRepository::class, [], [$fileStorage]);
         $container->setSingleton(ItemHydrator::class, [], [$fileStorage]);
         $container->setSingleton(ItemTypeHydrator::class);
-        $container->setSingleton(ItemFormFactory::class, [],[$this->formClasses]);
-        $container->setSingleton(ItemFactory::class, [],[ $this->itemClasses]);
+        $container->setSingleton(ItemFormFactory::class, [], [$this->formClasses]);
+        $container->setSingleton(ItemFactory::class, [], [$this->itemClasses]);
         $container->setSingleton(Decorator::class);
         $container->setSingleton(Cacher::class);
 
-        if ($app instanceof Application)
-        {
-            if (empty($app->controllerMap['migrate']['class']))
-            {
+        if ($app instanceof Application) {
+            if (empty($app->controllerMap['migrate']['class'])) {
 
                 $app->controllerMap['migrate'] = [
                     'class' => 'yii\console\controllers\MigrateController',
@@ -75,6 +75,14 @@ class ItemsBootstrap implements BootstrapInterface
             }
 
             $app->controllerMap['migrate']['migrationNamespaces'][] = 'svsoft\yii\items\migrations';
+        }
+
+        $i18n = $app->getI18n();
+
+        if (!isset($i18n->translations['items']) && !isset($i18n->translations['items*'])) {
+            $i18n->translations['items*'] = [
+                'class' => PhpMessageSource::class,
+            ];
         }
 
         return;

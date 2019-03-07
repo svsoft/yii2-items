@@ -40,6 +40,7 @@ class ItemGridView extends GridView
 
         $additionalColumns['id'] = [
             'attribute' => 'id',
+            'label' => ArrayHelper::getValue($this->labels, 'id', 'Id'),
         ];
 
         /** @var ItemRepository $itemRepository */

@@ -20,6 +20,8 @@ class ItemFormWidget extends ActiveForm
 
     public $enableClientValidation = false;
 
+    public $labels;
+
     function init()
     {
         if (!$this->itemForm)
@@ -37,7 +39,11 @@ class ItemFormWidget extends ActiveForm
         $fieldWidgets = [];
         foreach($this->itemForm->itemType->getFields() as $field)
         {
+            $fieldName = $field->getName();
             $fieldWidget = $this->field($this->itemForm, $field->getName());
+
+            if (isset($this->labels[$fieldName]))
+                $fieldWidget->label($this->labels[$fieldName]);
 
             switch($field->getType()->getId())
             {

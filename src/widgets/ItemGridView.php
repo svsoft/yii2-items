@@ -2,6 +2,7 @@
 
 namespace svsoft\yii\items\widgets;
 
+use svsoft\yii\items\admin\components\ItemTypeLabels;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
@@ -18,6 +19,15 @@ class ItemGridView extends GridView
      */
     public $itemType;
 
+    /**
+     * @var ItemTypeLabels
+     */
+    public $itemTypeLabels;
+
+    /**
+     * @var
+     */
+    public $labels = [];
 
     /**
      * @throws \yii\base\InvalidConfigException
@@ -30,7 +40,6 @@ class ItemGridView extends GridView
 
         $additionalColumns['id'] = [
             'attribute' => 'id',
-            'label' => \Yii::t('items','Id'),
         ];
 
         /** @var ItemRepository $itemRepository */
@@ -48,8 +57,11 @@ class ItemGridView extends GridView
 
             $additionalColumn = [
                     'attribute' => $field->getName(),
-                    'label' => \Yii::t('items', Inflector::camel2words($field->getName(), true)),
+                    'label' => ArrayHelper::getValue($this->labels, $fieldName, Inflector::camel2words($fieldName, true)),
                 ];
+
+            if (isset($this->labels[$fieldName]))
+                $additionalColumn['label'] = $this->labels[$fieldName];
 
             if ($field->getType()->getId() == Field::TYPE_ITEM)
             {

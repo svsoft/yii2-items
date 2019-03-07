@@ -36,7 +36,6 @@ class ItemsBootstrap implements BootstrapInterface
      */
     public $itemClasses = [];
 
-
     /**
      * @param \yii\base\Application $app
      *

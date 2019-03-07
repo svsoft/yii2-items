@@ -10,6 +10,7 @@ use svsoft\yii\items\repositories\ItemTypeRepository;
 use yii\base\InvalidCallException;
 use yii\base\Widget;
 use yii\helpers\Html;
+use yii\helpers\Inflector;
 
 class RelatedItemsWidget extends Widget
 {
@@ -77,7 +78,9 @@ class RelatedItemsWidget extends Widget
         $itemId = $this->item->getId();
         $itemTypeName = $itemType->getName();
 
-        return Html::a(\Yii::t('items', $this->labelManager->getLabel($itemType)->items), [$this->listRoute, 'type'=>$itemTypeName, 'relation'=>"{$fieldName}-{$itemId}"],['class'=>'btn btn-default']);
+        $message =  $this->labelManager ? $this->labelManager->getLabel($itemType)->items : Inflector::pluralize($itemType->getName());
+
+        return Html::a(\Yii::t('items',$message), [$this->listRoute, 'type'=>$itemTypeName, 'relation'=>"{$fieldName}-{$itemId}"],['class'=>'btn btn-default']);
     }
 
 }

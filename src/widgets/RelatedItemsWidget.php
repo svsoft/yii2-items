@@ -2,6 +2,7 @@
 
 namespace svsoft\yii\items\widgets;
 
+use svsoft\yii\items\admin\components\LabelManager;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
@@ -24,6 +25,11 @@ class RelatedItemsWidget extends Widget
 
     public $listRoute = 'item/index';
     public $detailRoute = 'item/update';
+
+    /**
+     * @var LabelManager
+     */
+    public $labelManager;
 
     function init()
     {
@@ -59,20 +65,19 @@ class RelatedItemsWidget extends Widget
                 if ($field->getType()->getParam('itemTypeId') != $this->itemType->getId())
                     continue;
 
-                $html .= $this->renderLink($relatedItemType->getName(), $field->getName());
+                $html .= $this->renderLink($relatedItemType, $field->getName());
             }
         }
 
         return $html;
     }
 
-    function renderLink($itemTypeName, $fieldName)
+    function renderLink(ItemType $itemType, $fieldName)
     {
         $itemId = $this->item->getId();
+        $itemTypeName = $itemType->getName();
 
-        $itemTypeLabel = \yii\helpers\Inflector::camel2words( $itemTypeName, true);
-
-        return Html::a(\Yii::t('items', $itemTypeLabel . ' items'), [$this->listRoute, 'type'=>$itemTypeName, 'relation'=>"{$fieldName}-{$itemId}"],['class'=>'btn btn-default']);
+        return Html::a(\Yii::t('items', $this->labelManager->getLabel($itemType)->items), [$this->listRoute, 'type'=>$itemTypeName, 'relation'=>"{$fieldName}-{$itemId}"],['class'=>'btn btn-default']);
     }
 
 }

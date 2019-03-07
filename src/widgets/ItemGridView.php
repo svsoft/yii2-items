@@ -2,7 +2,7 @@
 
 namespace svsoft\yii\items\widgets;
 
-use svsoft\yii\items\admin\components\ItemTypeLabels;
+use svsoft\yii\items\admin\components\Label;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
@@ -20,7 +20,7 @@ class ItemGridView extends GridView
     public $itemType;
 
     /**
-     * @var ItemTypeLabels
+     * @var Label
      */
     public $itemTypeLabels;
 

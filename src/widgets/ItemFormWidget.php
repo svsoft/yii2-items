@@ -56,7 +56,7 @@ class ItemFormWidget extends ActiveForm
                     $fieldWidgets[$field->getName()] = $this->fieldText($fieldWidget);
                     break;
                 case Field::TYPE_FILE:
-                    $fieldWidgets[$field->getName()] = $this->fieldFile($field);
+                    $fieldWidgets[$field->getName()] = $this->fieldFile($fieldWidget, $field);
                     break;
                 case Field::TYPE_HTML:
                     $fieldWidgets[$field->getName()] = $this->fieldHtml($field, $fieldWidget);
@@ -104,7 +104,7 @@ class ItemFormWidget extends ActiveForm
      *
      * @return ActiveField
      */
-    function fieldFile(Field $field)
+    function fieldFile(ActiveField $fieldWidget, Field $field)
     {
         if (!isset($this->options['enctype']))
             $this->options['enctype'] = 'multipart/form-data';
@@ -122,8 +122,7 @@ class ItemFormWidget extends ActiveForm
             }
         }
 
-        return $this->field($this->itemForm, $field->getName())->widget(FileUploadWidget::class, ['multiple'=>$field->getMultiple(),'files' => $files]);
-
+        return $fieldWidget->widget(FileUploadWidget::class, ['multiple'=>$field->getMultiple(),'files' => $files]);
     }
 
     /**

@@ -4,11 +4,8 @@ namespace svsoft\yii\items\services;
 
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
-use svsoft\yii\items\exceptions\ValidationErrorException;
-use svsoft\yii\items\factories\ItemBuilder;
-use svsoft\yii\items\factories\ItemFormFactory;
-use svsoft\yii\items\forms\ItemFiller;
-use svsoft\yii\items\forms\ItemForm;
+use svsoft\yii\items\factories\SaveModelFactory;
+use svsoft\yii\items\models\SaveItemModel;
 use svsoft\yii\items\repositories\ItemQuery;
 use svsoft\yii\items\repositories\ItemRepository;
 use svsoft\yii\items\repositories\ItemTypeRepository;
@@ -99,61 +96,48 @@ class ItemManager extends Component
     /**
      * @param $itemType
      *
-     * @return ItemForm
+     * @return SaveItemModel
      * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
      * @throws \yii\base\InvalidConfigException
      * @throws \yii\di\NotInstantiableException
      */
-    public function createForm($itemType)
+    public function createSaveModel($itemType)
     {
         if (!$itemType instanceof ItemType)
             $itemType = $this->getItemTypeByName($itemType);
 
-        /** @var ItemFormFactory $factory */
-        $factory = \Yii::$container->get(ItemFormFactory::class);
+        /** @var SaveModelFactory $factory */
+        $factory = \Yii::$container->get(SaveModelFactory::class);
 
         return $factory->build($itemType);
     }
 
-    public function update(ItemForm $itemForm)
+    /**
+     * @param Item $item
+     *
+     * @throws \Throwable
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
+    public function update(Item $item)
     {
-        if (!$itemForm->validate())
-            throw new ValidationErrorException('Item validation error');
-
-        $item = $itemForm->getItem();
-
-        (new ItemFiller())->fill($item, $itemForm);
-
         $this->getItemRepository()->update($item);
 
         $this->getCacher()->cleanByItemType($item->getItemTypeId());
     }
 
     /**
-     * @param ItemForm $itemForm
+     * @param Item $item
      *
-     * @return Item
-     * @throws ValidationErrorException
      * @throws \Throwable
-     * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
      */
-    public function create(ItemForm $itemForm)
+    public function create(Item $item)
     {
-        if (!$itemForm->validate())
-            throw new ValidationErrorException('Item validation error');
-
-        /** @var ItemBuilder $builder */
-        $builder = \Yii::createObject(ItemBuilder::class);
-
-        $item = $builder->setItemType($itemForm->itemType)->build();
-
-        (new ItemFiller())->fill($item, $itemForm);
-
         $this->getItemRepository()->create($item);
 
         $this->getCacher()->cleanByItemType($item->getItemTypeId());
-
-        return $item;
     }
 
     /**
@@ -164,5 +148,7 @@ class ItemManager extends Component
     public function delete(Item $item)
     {
         $this->getItemRepository()->delete($item);
+
+        $this->getCacher()->cleanByItemType($item->getItemTypeId());
     }
 }

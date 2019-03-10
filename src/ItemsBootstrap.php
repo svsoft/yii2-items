@@ -5,6 +5,7 @@ namespace svsoft\yii\items;
 use svsoft\yii\items\decorators\Decorator;
 use svsoft\yii\items\factories\ItemFactory;
 use svsoft\yii\items\factories\ItemFormFactory;
+use svsoft\yii\items\factories\SaveModelFactory;
 use svsoft\yii\items\repositories\FileStorage;
 use svsoft\yii\items\repositories\hydrators\ItemHydrator;
 use svsoft\yii\items\repositories\hydrators\ItemTypeHydrator;
@@ -29,6 +30,8 @@ class ItemsBootstrap implements BootstrapInterface
      * @var array
      */
     public $formClasses = [];
+
+    public $saveModelClasses = [];
 
     /**
      * Соответсвие типов элементов и классов форм
@@ -61,6 +64,7 @@ class ItemsBootstrap implements BootstrapInterface
         $container->setSingleton(ItemHydrator::class, [], [$fileStorage]);
         $container->setSingleton(ItemTypeHydrator::class);
         $container->setSingleton(ItemFormFactory::class, [], [$this->formClasses]);
+        $container->setSingleton(SaveModelFactory::class, [], [$this->saveModelClasses]);
         $container->setSingleton(ItemFactory::class, [], [$this->itemClasses]);
         $container->setSingleton(Decorator::class);
         $container->setSingleton(Cacher::class);

@@ -38,8 +38,6 @@ class SaveItemModel extends ItemForm
         if (!$this->validate())
             throw new ValidationErrorException('invalid model');
 
-        $this->beforeSave();
-
         if ($this->item)
         {
             $item = $this->item;
@@ -58,11 +56,6 @@ class SaveItemModel extends ItemForm
             $itemManager->update($item);
 
         $this->afterSave($item);
-    }
-
-    protected function beforeSave()
-    {
-
     }
 
     protected function afterSave(Item $item)

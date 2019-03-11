@@ -5,7 +5,7 @@ namespace svsoft\yii\items\forms;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
-use svsoft\yii\items\forms\validators\ExistValidator;
+use svsoft\yii\items\forms\validators\ItemExistValidator;
 use svsoft\yii\items\forms\validators\UniqueValidator;
 use svsoft\yii\items\helpers\PostFiles;
 use svsoft\yii\items\repositories\ItemQuery;
@@ -111,7 +111,7 @@ class ItemForm extends DynamicModel
                 case Field::TYPE_ITEM :
                     $rule = [
                         $name,
-                        ExistValidator::class,
+                        ItemExistValidator::class,
                         'targetItemType' => $this->itemType,
                         'targetAttribute' => 'id'
                     ];

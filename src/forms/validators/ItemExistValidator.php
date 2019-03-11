@@ -10,7 +10,7 @@ use yii\base\InvalidConfigException;
 use yii\validators\Validator;
 use Yii;
 
-class ExistValidator extends Validator
+class ItemExistValidator extends Validator
 {
     public $targetAttribute;
     /** @var ItemType|string */

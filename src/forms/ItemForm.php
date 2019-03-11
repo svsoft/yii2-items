@@ -5,7 +5,7 @@ namespace svsoft\yii\items\forms;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
-use svsoft\yii\items\forms\validators\ItemExistValidator;
+use svsoft\yii\items\forms\validators\ExistValidator;
 use svsoft\yii\items\forms\validators\UniqueValidator;
 use svsoft\yii\items\helpers\PostFiles;
 use svsoft\yii\items\repositories\ItemQuery;
@@ -42,20 +42,24 @@ class ItemForm extends DynamicModel
         $this->itemType = $itemType;
 
         $attributes = [];
-        foreach($itemType->getFields() as $field)
+        foreach ($itemType->getFields() as $field) {
             $attributes[] = $field->getName();
+        }
 
         parent::__construct($attributes, $config);
     }
 
-    function init()
+    /**
+     * @throws InvalidConfigException
+     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
+     * @throws \yii\di\NotInstantiableException
+     */
+    public function init()
     {
-        foreach($this->itemType->getFields() as $field)
-        {
+        foreach ($this->itemType->getFields() as $field) {
             $name = $field->getName();
 
-            if ($field->getType()->getId() === Field::TYPE_ITEM)
-            {
+            if ($field->getType()->getId() === Field::TYPE_ITEM) {
                 // Если тип сслыка на элемен, то добавляем запрос допустимых элементов для выбора
 
                 $fieldItemTypeId = $field->getType()->getParam('itemTypeId');
@@ -75,23 +79,24 @@ class ItemForm extends DynamicModel
         parent::init();
     }
 
-    function rules()
+    public function rules()
     {
         return $this->defaultRules();
     }
 
-    final protected function defaultRules()
+    final protected function defaultRules(): array
     {
+        /** @var ItemTypeRepository $repo */
+        $repo = \Yii::$container->get(ItemTypeRepository::class);
+
         $rules = [];
-        foreach($this->itemType->getFields() as $field)
-        {
+        foreach ($this->itemType->getFields() as $field) {
             $name = $field->getName();
 
             $rule = [];
-            switch($field->getType()->getId())
-            {
+            switch ($field->getType()->getId()) {
                 case Field::TYPE_STRING :
-                    $rule = [$name, 'string', 'max'=>255];
+                    $rule = [$name, 'string', 'max' => 255];
                     break;
                 case Field::TYPE_TEXT :
                 case Field::TYPE_HTML :
@@ -104,16 +109,21 @@ class ItemForm extends DynamicModel
                     $rule = [$name, 'number'];
                     break;
                 case Field::TYPE_FILE :
-                    $rule = [$name, 'file', 'maxFiles'=>$field->getMultiple() ? 10 : 1];
+                    $rule = [$name, 'file', 'maxFiles' => $field->getMultiple() ? 10 : 1];
                     break;
                 case Field::TYPE_ITEM :
-                    $rule = [$name, ItemExistValidator::class];
+                    $rule = [
+                        $name,
+                        ExistValidator::class,
+                        'targetItemType' => $repo->get($field->getType()->getParam('itemTypeId')),
+                        'targetAttribute' => 'id'
+                    ];
                     break;
                 case Field::TYPE_DATE :
-                    $rule = [$name, 'date', 'format'=>'php:Y-m-d'];
+                    $rule = [$name, 'date', 'format' => 'php:Y-m-d'];
                     break;
                 case Field::TYPE_DATETIME :
-                    $rule = [$name, 'date', 'format'=>'php:Y-m-d H:i:s'];
+                    $rule = [$name, 'date', 'format' => 'php:Y-m-d H:i:s'];
                     break;
                 case Field::TYPE_BOOLEAN :
                     $rule = [$name, 'boolean'];
@@ -121,17 +131,16 @@ class ItemForm extends DynamicModel
 
             }
 
-            if ($rule)
+            if ($rule) {
                 $rules[$name] = $rule;
-
-            if ($field->getType()->getRequired())
-            {
-                $rules[$name.'-required'] = [$name, 'required'];
             }
 
-            if ($field->getType()->getUnique())
-            {
-                $rules[$name.'-unique'] = [$name, UniqueValidator::class];
+            if ($field->getType()->getRequired()) {
+                $rules[$name . '-required'] = [$name, 'required'];
+            }
+
+            if ($field->getType()->getUnique()) {
+                $rules[$name . '-unique'] = [$name, UniqueValidator::class];
             }
         }
 
@@ -161,7 +170,7 @@ class ItemForm extends DynamicModel
      *
      * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
      */
-    function setItem(Item $item)
+    public function setItem(Item $item)
     {
         $this->item = $item;
 
@@ -173,7 +182,7 @@ class ItemForm extends DynamicModel
     /**
      * @return Item
      */
-    function getItem()
+    public function getItem()
     {
         return $this->item;
     }
@@ -181,7 +190,7 @@ class ItemForm extends DynamicModel
     /**
      * @return ItemType
      */
-    function getItemType()
+    public function getItemType()
     {
         return $this->itemType;
     }
@@ -192,18 +201,18 @@ class ItemForm extends DynamicModel
      *
      * @return bool
      */
-    function loadFiles($data, $formName = null)
+    public function loadFiles($data, $formName = null)
     {
         $attributes = PostFiles::getFiles($data, $formName ?: $this->formName());
 
-        foreach($attributes as $name=>$value)
-        {
+        foreach ($attributes as $name => $value) {
             $oldValue = $this->getAttribute($name);
 
-            if (is_array($oldValue))
+            if (\is_array($oldValue)) {
                 $attributes[$name] = array_merge($oldValue, $value);
-            else
+            } else {
                 $attributes[$name] = $value;
+            }
         }
 
         $this->setAttributes($attributes);
@@ -212,14 +221,14 @@ class ItemForm extends DynamicModel
 
     }
 
-    function getAttribute($name)
+    public function getAttribute($name)
     {
         $attributes = $this->getAttributes([$name]);
 
         return $attributes[$name];
     }
 
-    function getAttributeLabel($attribute)
+    public function getAttributeLabel($attribute)
     {
         return \Yii::t('items', parent::getAttributeLabel($attribute));
     }

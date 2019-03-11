@@ -86,6 +86,9 @@ class ItemForm extends DynamicModel
 
     final protected function defaultRules(): array
     {
+        /** @var ItemTypeRepository $repo */
+        $repo = \Yii::$container->get(ItemTypeRepository::class);
+
         $rules = [];
         foreach ($this->itemType->getFields() as $field) {
             $name = $field->getName();
@@ -112,7 +115,7 @@ class ItemForm extends DynamicModel
                     $rule = [
                         $name,
                         ItemExistValidator::class,
-                        'targetItemType' => $this->itemType,
+                        'targetItemType' => $repo->get($field->getType()->getParam('itemTypeId')),
                         'targetAttribute' => 'id'
                     ];
                     break;

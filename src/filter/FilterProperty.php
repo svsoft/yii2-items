@@ -40,6 +40,16 @@ class FilterProperty extends Component
     }
 
     /**
+     * @param $value
+     *
+     * @return bool
+     */
+    public function hasValue($value)
+    {
+        return array_key_exists($value, $this->values);
+    }
+
+    /**
      * @return array
      */
     public function getValueList()

@@ -93,7 +93,21 @@ class ItemTypeUpdater
         }
 
         if ($name)
+        {
+            if (strpos($name, '*') === 0)
+            {
+                $name = str_replace('*', '',$name);
+                $normalizeData['type']['required'] = true;
+            }
+
+            if (strpos($name, '[]'))
+            {
+                $name = str_replace('[]', '',$name);
+                $normalizeData['type']['multiple'] = true;
+            }
+
             $normalizeData['name'] = $name;
+        }
 
         return $normalizeData;
     }

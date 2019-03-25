@@ -115,6 +115,7 @@ class Decorator extends BaseObject
         }
         else
         {
+            $return = null;
             $value = $attributeValue;
             if ($value instanceof FileAttributeInterface)
                 $return = $this->imageThumb->thumb($value->getFilePath(), $thumbName);

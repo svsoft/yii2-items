@@ -41,10 +41,13 @@ class ItemTypeHydrator
         $itemTypeKey = $this->tableManager->getTableItemType()->getKey($itemType->getId());
 
         $fieldRows = [];
+        $i = 0;
         foreach($itemType->getFields() as $field)
         {
+            $i++;
             $fieldRow = $this->fieldHydrator->dehytrate($field);
             $fieldRow['item_type_key'] = $itemTypeKey;
+            $fieldRow['sort'] = $i;
             $fieldRows[] = $fieldRow;
         }
 

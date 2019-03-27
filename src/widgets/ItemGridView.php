@@ -57,9 +57,9 @@ class ItemGridView extends GridView
                 continue;
 
             $additionalColumn = [
-                    'attribute' => $field->getName(),
-                    'label' => ArrayHelper::getValue($this->labels, $fieldName, Inflector::camel2words($fieldName, true)),
-                ];
+                'attribute' => $field->getName(),
+                'label' => ArrayHelper::getValue($this->labels, $fieldName, Inflector::camel2words($fieldName, true)),
+            ];
 
             if (isset($this->labels[$fieldName]))
                 $additionalColumn['label'] = $this->labels[$fieldName];
@@ -67,7 +67,11 @@ class ItemGridView extends GridView
             if ($field->getType()->getId() == Field::TYPE_ITEM)
             {
                 $additionalColumn['value'] = function(Item $item) use ($field, $itemRepository){
-                    $valueItem = $itemRepository->get($item->getAttribute($field->getName()));
+
+                    if (!$value = $item->getAttribute($field->getName()))
+                        return null;
+
+                    $valueItem = $itemRepository->get($value);
                     return (string)$valueItem;
                 };
             }

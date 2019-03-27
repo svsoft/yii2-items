@@ -128,14 +128,29 @@ class ItemTypeUpdater
         return $normalizeData;
     }
 
+    /**
+     * @param $itemTypesData
+     *
+     * @throws FieldException
+     * @throws ItemTypeException
+     * @throws ItemTypeNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
     public function update($itemTypesData)
     {
         foreach($itemTypesData as $key=>$itemTypeData)
         {
             if ($itemTypeData === null && !is_numeric($key))
             {
-                $itemType = $this->repository->getByName($key);
-                $this->itemTypeManager->delete($itemType);
+                try
+                {
+                    $itemType = $this->repository->getByName($key);
+                    $this->itemTypeManager->delete($itemType);
+                }
+                catch(ItemTypeNotFoundException $exception)
+                {
+
+                }
             }
         }
 
@@ -147,6 +162,15 @@ class ItemTypeUpdater
         }
     }
 
+    /**
+     * @param $itemTypeData
+     * @param bool $normalize
+     *
+     * @throws FieldException
+     * @throws ItemTypeException
+     * @throws ItemTypeNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
     function updateItemType($itemTypeData, $normalize = false)
     {
         if ($normalize)

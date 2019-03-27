@@ -4,7 +4,7 @@ namespace svsoft\yii\items\traits;
 
 use svsoft\yii\items\repositories\ItemQuery;
 
-trait CreateQueryTrait
+trait CreateItemQueryTrait
 {
     /**
      * @param $itemType

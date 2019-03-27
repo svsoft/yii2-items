@@ -51,6 +51,16 @@ class TableValue extends AbstractTableValue
      */
     function changeType($fieldKey, $oldType, $newType)
     {
+        // Удаляем значения
+        if ($newType == Field::TYPE_ITEM)
+        {
+            $this->delete(['field_key'=>$fieldKey]);
+            return;
+        }
+
+        // todo: добавить удаления для файлового типа
+
+
         $oldValueColumn = $this->getValueColumn($oldType);
         $valueColumn = $this->getValueColumn($newType);
 

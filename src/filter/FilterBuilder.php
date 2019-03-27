@@ -2,123 +2,94 @@
 
 namespace svsoft\yii\items\filter;
 
-use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\repositories\ItemQuery;
-use svsoft\yii\items\repositories\ItemTypeRepository;
 use yii\base\InvalidConfigException;
-use yii\db\Query;
+use yii\helpers\ArrayHelper;
 
 class FilterBuilder
 {
-    protected $properties;
+    public $query;
 
     /**
-     * @var callable
+     * @var FilterAttribute[]
      */
-    protected $queryFilter;
+    public $filterAttributes;
 
     /**
-     * @var ItemType
-     */
-    protected $itemType;
-
-    /**
-     * @var ItemQuery
-     */
-    protected $query;
-
-    /**
-     * @param $properties
+     * @param ItemQuery $query
      *
      * @return $this
      */
-    public function setProperties($properties)
-    {
-        $propertyData = [];
-        foreach($properties as $key=>$property)
-        {
-            if (is_numeric($key))
-            {
-                $propertyName = $property;
-                $propertyData['type'] = FilterProperty::FILTER_TYPE_VALUE;
-            }
-            else
-            {
-                $propertyName = $key;
-                $propertyData['type'] = $property;
-            }
-
-            $this->properties[$propertyName] = $propertyData;
-        }
-
-        return $this;
-    }
-
-    /**
-     * @param string|ItemType $itemType
-     *
-     * @return $this
-     */
-    public function setItemType($itemType)
-    {
-        /** @var ItemTypeRepository $repository */
-        $repository = \Yii::$container->get(ItemTypeRepository::class);
-
-        if (!$itemType instanceof ItemType)
-            $itemType = $repository->getByName($itemType);
-
-        $this->itemType = $itemType;
-
-        return $this;
-    }
-
-    /**
-     * @param callable $callback
-     *
-     * @return $this
-     */
-    public function setQueryFilter(callable $callback)
-    {
-        $this->queryFilter = $callback;
-
-        return $this;
-    }
-
-    public function setQuery(Query $query)
+    function setQuery(ItemQuery $query)
     {
         $this->query = $query;
+        return $this;
+    }
+
+    function setFilterAttributes($attributes)
+    {
+        $this->filterAttributes = $attributes;
 
         return $this;
     }
 
-    public function build()
+    /**
+     * @return Filter
+     * @throws InvalidConfigException
+     * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
+     */
+    function build()
     {
-        if (empty($this->properties))
+        if (empty($this->filterAttributes))
             throw new InvalidConfigException('Property "properties" must be set');
 
-
         if (!$this->query)
-        {
-            if (!$this->itemType)
-                throw new InvalidConfigException('property "itemType" must be set');
+            throw new InvalidConfigException('Property "query" must be set');
 
-            $this->query = \Yii::createObject(ItemQuery::class, [$this->itemType]);
+        $attributes = [];
+        foreach($this->filterAttributes as $filterAttribute)
+                $attributes[] = $filterAttribute->attribute;
+
+        $attributeValues = $this->getAttributeValues($this->query, $attributes);
+
+        foreach($this->filterAttributes as $filterAttribute)
+        {
+            $attribute = $filterAttribute->attribute;
+            $values = ArrayHelper::getValue($attributeValues, $attribute, []);
+            if ($filterAttribute instanceof FilterAttributeList)
+            {
+                $filterAttribute->values = ArrayHelper::getValue($attributeValues, $attribute, []);
+            }
+            elseif ($filterAttribute instanceof FilterAttributeRange)
+            {
+                if ($values)
+                {
+                    $filterAttribute->from = min($values);
+                    $filterAttribute->to = max($values);
+                }
+            }
         }
 
-        if ($this->queryFilter)
-            call_user_func($this->queryFilter, $this->query);
+        return new Filter($this->filterAttributes);
+    }
 
-        $items = $this->query->all();
+    /**
+     * @param ItemQuery $query
+     * @param $attributes
+     *
+     * @return array
+     * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
+     */
+    protected function getAttributeValues(ItemQuery $query, $attributes)
+    {
+        $items = $query->all();
 
-        $properties = $this->properties;
-        $filterProperties = [];
-        foreach($properties as $propertyName=>$propertyData)
+        $attributeValues = [];
+        foreach($items as $item)
         {
-            // $field = $this->itemType->getFieldByName($propertyName);
-            $propertyValues = [];
-            foreach($items as $item)
+            foreach($attributes as $attribute)
             {
-                $attributeValue = $item->getAttribute($propertyName);
+                $attributeValue = $item->getAttribute($attribute);
 
                 if (is_array($attributeValue))
                 {
@@ -129,13 +100,18 @@ class FilterBuilder
                 }
                 elseif ($attributeValue !== null)
                 {
-                    $propertyValues[$attributeValue] = $attributeValue;
+                    $attributeValues[$attribute][$attributeValue] = $attributeValue;
                 }
             }
-
-            $filterProperties[] = new FilterProperty(['values' => $propertyValues,'name' => $propertyName, 'type' => $propertyData['type']]);
         }
 
-        return new Filter($filterProperties);
+        foreach($attributes as $attribute)
+        {
+            if (empty($attributeValues[$attribute]))
+                $attributeValues[$attribute] = [];
+        }
+
+        return $attributeValues;
     }
+
 }

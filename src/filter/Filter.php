@@ -1,50 +1,114 @@
 <?php
-
 namespace svsoft\yii\items\filter;
 
-use yii\base\BaseObject;
+use yii\base\DynamicModel;
+use yii\base\Exception;
 use yii\helpers\ArrayHelper;
 
-/**
- * Фильтр содержит данные для создания филтра. набор свойств, состоящие из допустимых значений
- *
- * Class Filter
- * @package svsoft\yii\items\filter
- */
-class Filter extends BaseObject
+class Filter extends DynamicModel
 {
-    /**
-     * @var FilterProperty[]
-     */
-    protected $properties;
+
+    protected $filterAttributes;
 
     /**
      * Filter constructor.
      *
-     * @param FilterProperty[] $properties
+     * @param FilterAttribute[] $filterAttributes
      * @param array $config
      */
-    function __construct($properties, array $config = [])
+    function __construct($filterAttributes, array $config = [])
     {
-        $this->properties = [];
-        foreach($properties as $property)
-            $this->properties[$property->name] = $property;
+        $attributes = [];
+        foreach($filterAttributes as $key=>$filterAttribute)
+        {
+            if (is_numeric($key))
+                $formAttribute = $filterAttribute->attribute;
+            else
+                $formAttribute = $key;
 
-        parent::__construct($config);
+            $this->filterAttributes[$formAttribute] = $filterAttribute;
+
+            $attributes[] =  $formAttribute;
+        }
+
+        parent::__construct($attributes, $config);
+    }
+
+    function init()
+    {
+
+        foreach($this->getFilterAttributes() as $attribute=>$filterAttribute)
+        {
+            if ($filterAttribute instanceof FilterAttributeList)
+            {
+                if ($filterAttribute->multiple)
+                    $this->$attribute = [];
+
+                $this->addRule([$attribute], 'in',['range'=>$filterAttribute->values]);
+            }
+            elseif ($filterAttribute instanceof FilterAttributeRange)
+                $this->addRule([$attribute], 'number');
+            else
+                $this->addRule([$attribute], 'safe');
+        }
+
+        parent::init();
+    }
+
+    function beforeValidate()
+    {
+        foreach($this->getFilterAttributes() as $attribute=>$filterAttribute)
+        {
+            if ($filterAttribute instanceof FilterAttributeRange)
+                $this->$attribute = str_replace(',', '.', $this->$attribute);
+        }
+
+        return parent::beforeValidate();
+    }
+
+
+    /**
+     * @param string $attribute
+     *
+     * @return string
+     * @throws Exception
+     */
+    function getAttributeLabel($attribute)
+    {
+        return $this->getFilterAttribute($attribute)->label;
+    }
+
+    function getAttribute($attribute)
+    {
+        return $this->$attribute;
     }
 
     /**
-     * @param $field
+     * @param $attribute
      *
-     * @return FilterProperty|null
+     * @return FilterAttribute
+     * @throws Exception
      */
-    public function getProperty($field)
+    function getFilterAttribute($attribute)
     {
-        return ArrayHelper::getValue($this->properties, $field);
+        $filterAttribute = ArrayHelper::getValue($this->filterAttributes, $attribute);
+
+        if (!$filterAttribute)
+            throw new Exception('Filter "'.$attribute.'" attribute not found');
+
+        return $filterAttribute;
     }
 
-    public function getProperties()
+    /**
+     * @return FilterAttribute[]
+     */
+    function getFilterAttributes()
     {
-        return $this->properties;
+        return $this->filterAttributes;
+    }
+
+    function formName()
+    {
+        return 'f';
     }
 }

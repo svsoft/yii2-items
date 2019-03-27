@@ -2,70 +2,86 @@
 
 namespace svsoft\yii\items\filter;
 
+use svsoft\yii\items\exceptions\ValidationErrorException;
 use svsoft\yii\items\repositories\ItemQuery;
+use yii\helpers\ArrayHelper;
 
 class FilterManager
 {
-    function createFilterBuilder()
-    {
-        return new FilterBuilder();
-    }
 
-
-    function createFilter(ItemQuery $query, $properties)
+    /**
+     * @param ItemQuery $query
+     * @param $filterAttributes
+     *
+     * @return FilterBuilder
+     */
+    function filterBuilder(ItemQuery $query, $filterAttributes)
     {
-        return ( new FilterBuilder())->setProperties($properties)->setQuery($query)->build();
+        return (new FilterBuilder())
+            ->setQuery($query)
+            ->setFilterAttributes($filterAttributes);
     }
 
     /**
-     * @param Filter $filter
+     * @param ItemQuery $query
+     * @param $filterAttributes
      *
-     * @return FilterForm
+     * @return Filter
+     * @throws \svsoft\yii\items\exceptions\ItemAttributeNotFound
+     * @throws \yii\base\InvalidConfigException
      */
-    function createForm(Filter $filter)
+    function createFilter(ItemQuery $query, $filterAttributes)
     {
-        $attributes = [];
-        foreach($filter->getProperties() as $property)
-            $attributes[] = $property->name;
-
-        $form = new FilterForm($attributes);
-
-        foreach($filter->getProperties() as $property)
-        {
-            $attribute = $property->name;
-            if ($property->type == FilterProperty::FILTER_TYPE_RANGE)
-            {
-                $form->$attribute = [$property->getMinValue(), $property->getMaxValue()];
-            }
-            $form->addRule($attribute, 'safe');
-        }
-
-
-        return $form;
+        return $this->filterBuilder($query, $filterAttributes)->build();
     }
 
-    function filter(ItemQuery $query, FilterForm $filterForm, Filter $filter)
+    /**
+     * @param ItemQuery $query
+     * @param Filter $filter
+     *
+     * @return ItemQuery
+     * @throws ValidationErrorException
+     */
+    function filter(ItemQuery $query, Filter $filter)
     {
-        if (!$filterForm->validate())
-            return;
+        if (!$filter->validate())
+            throw new ValidationErrorException('Validation error');
 
-        foreach($filter->getProperties() as $filterProperty)
+        foreach($filter->getFilterAttributes() as $formAttribute=>$filterAttribute)
         {
-            $attribute = $filterProperty->name;
+            $attribute = $filterAttribute->attribute;
 
-            $attributeValue  = $filterForm->$attribute;
+            $attributeValue  = $filter->$formAttribute;
             if ($attributeValue === '' || $attributeValue === null)
                 continue;
 
-            switch($filterProperty->type)
+            if ($filterAttribute instanceof FilterAttributeMore)
             {
-                case FilterProperty::FILTER_TYPE_RANGE:
-                    if ($attributeValue[0] && $attributeValue[1])
-                        $query->andWhere(['BETWEEN', $attribute, $attributeValue[0], $attributeValue[1]]);
-                    break;
-                default:
-                    $query->andWhere([$attribute => $attributeValue]);
+                $query->andFilterWhere([$filterAttribute->strict ? '>' : '>=', $attribute, $attributeValue]);
+            }
+            elseif ($filterAttribute instanceof FilterAttributeLess)
+            {
+                $query->andFilterWhere([$filterAttribute->strict ? '<' : '<=', $attribute, $attributeValue]);
+            }
+            elseif ($filterAttribute instanceof FilterAttributeBetween)
+            {
+                $ar = explode(',',$attributeValue);
+                $from = ArrayHelper::getValue($ar, 0);
+                $to = ArrayHelper::getValue($ar, 1);
+
+                $query->andWhere(['BETWEEN', $attribute, $from, $to]);
+            }
+            elseif ($filterAttribute instanceof FilterAttributeList)
+            {
+                $query->andFilterWhere([$attribute=>$attributeValue]);
+            }
+            else
+            {
+                $query->andFilterWhere([$attribute=>$attributeValue]);
             }
         }
+
+        return $query;
     }
+
 }

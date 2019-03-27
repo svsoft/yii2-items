@@ -46,7 +46,7 @@ class Filter extends DynamicModel
 
                 $this->addRule([$attribute], 'in',['range'=>$filterAttribute->values]);
             }
-            elseif ($filterAttribute instanceof FilterAttributeRange)
+            elseif ($filterAttribute instanceof FilterAttributeLess || $filterAttribute instanceof FilterAttributeMore)
                 $this->addRule([$attribute], 'number');
             else
                 $this->addRule([$attribute], 'safe');
@@ -59,7 +59,7 @@ class Filter extends DynamicModel
     {
         foreach($this->getFilterAttributes() as $attribute=>$filterAttribute)
         {
-            if ($filterAttribute instanceof FilterAttributeRange)
+            if ($filterAttribute instanceof FilterAttributeLess || $filterAttribute instanceof FilterAttributeMore)
                 $this->$attribute = str_replace(',', '.', $this->$attribute);
         }
 

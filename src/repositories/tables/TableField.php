@@ -26,7 +26,7 @@ class TableField extends AbstractTableValue
     function getAll()
     {
         if ($this->all === null)
-            $this->all = $this->query()->indexBy('key')->all();
+            $this->all = $this->query()->indexBy('key')->orderBy(['sort'=>SORT_ASC])->all();
 
         return $this->all;
     }

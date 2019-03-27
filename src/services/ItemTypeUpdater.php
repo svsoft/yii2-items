@@ -93,7 +93,21 @@ class ItemTypeUpdater
         }
 
         if ($name)
+        {
+            if (strpos($name, '*') === 0)
+            {
+                $name = str_replace('*', '',$name);
+                $normalizeData['type']['required'] = true;
+            }
+
+            if (strpos($name, '[]'))
+            {
+                $name = str_replace('[]', '',$name);
+                $normalizeData['type']['multiple'] = true;
+            }
+
             $normalizeData['name'] = $name;
+        }
 
         return $normalizeData;
     }
@@ -114,14 +128,29 @@ class ItemTypeUpdater
         return $normalizeData;
     }
 
+    /**
+     * @param $itemTypesData
+     *
+     * @throws FieldException
+     * @throws ItemTypeException
+     * @throws ItemTypeNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
     public function update($itemTypesData)
     {
         foreach($itemTypesData as $key=>$itemTypeData)
         {
             if ($itemTypeData === null && !is_numeric($key))
             {
-                $itemType = $this->repository->getByName($key);
-                $this->itemTypeManager->delete($itemType);
+                try
+                {
+                    $itemType = $this->repository->getByName($key);
+                    $this->itemTypeManager->delete($itemType);
+                }
+                catch(ItemTypeNotFoundException $exception)
+                {
+
+                }
             }
         }
 
@@ -133,6 +162,15 @@ class ItemTypeUpdater
         }
     }
 
+    /**
+     * @param $itemTypeData
+     * @param bool $normalize
+     *
+     * @throws FieldException
+     * @throws ItemTypeException
+     * @throws ItemTypeNotFoundException
+     * @throws \yii\base\InvalidConfigException
+     */
     function updateItemType($itemTypeData, $normalize = false)
     {
         if ($normalize)

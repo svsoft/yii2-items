@@ -28,7 +28,7 @@ class Field
     static function types()
     {
         return [self::TYPE_STRING, self::TYPE_INT, self::TYPE_REAL, self::TYPE_TEXT, self::TYPE_STRING, self::TYPE_HTML,
-                self::TYPE_ITEM, self::TYPE_DATE, self::TYPE_DATETIME, self::TYPE_BOOLEAN, self::TYPE_TIMESTAMP];
+                self::TYPE_ITEM, self::TYPE_DATE, self::TYPE_DATETIME, self::TYPE_BOOLEAN, self::TYPE_TIMESTAMP, self::TYPE_FILE];
     }
 
     function __construct($id, $name, FieldType $type)

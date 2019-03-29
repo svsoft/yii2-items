@@ -18,6 +18,9 @@ class FileUploadWidget extends InputWidget
 
     public $files = [];
 
+    /**
+     * @throws \yii\base\InvalidConfigException
+     */
     public function init()
     {
         FileUploadAsset::register($this->view);
@@ -45,6 +48,7 @@ class FileUploadWidget extends InputWidget
 
         $values = is_array($attributeValue) ? $attributeValue : ($attributeValue ? [$attributeValue] : null);
 
+
         if ($values)
         {
             $html .= Html::beginTag('div',['class'=>'row']);
@@ -52,7 +56,7 @@ class FileUploadWidget extends InputWidget
             {
                 $html .= Html::beginTag('div',['class'=>'file-upload-widget-img-item col-lg-2 col-sm-3 col-xs-6']);
 
-                if ($filePath = ArrayHelper::getValue($this->files, $value) )
+                if ($filePath = ArrayHelper::getValue($this->files, $key) )
                 {
                     if (!file_exists($filePath) || getimagesize($filePath) === false)
                     {
@@ -63,6 +67,8 @@ class FileUploadWidget extends InputWidget
                         $html .= Html::img( $imageThumb->thumbByParams($filePath, 200, 200) );
                     }
                 }
+
+
 
                 $html .= Html::activeHiddenInput($this->model, $this->attribute . ($multiple?"[$key]":''), ['value'=>$value]);
                 $html .= Html::tag('div',

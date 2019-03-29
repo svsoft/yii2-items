@@ -24,7 +24,7 @@ class ValueItemHydrator implements ValueHydratorInterface
 
     function dehytrate($value)
     {
-        return $value;
+        return $value ?: null ;
         //return $this->tableManager->getTableItem()->getKey($value);
     }
 }

@@ -44,12 +44,22 @@ class Filter extends DynamicModel
                 if ($filterAttribute->multiple)
                     $this->$attribute = [];
 
-                $this->addRule([$attribute], 'in',['range'=>$filterAttribute->values]);
+                if ($filterAttribute->multiple)
+                {
+                    $this->addRule([$attribute], 'each', ['rule'=>['in', 'range'=>array_keys($filterAttribute->values)]]);
+
+                }
+                else
+                {
+                    $this->addRule([$attribute], 'in', ['range'=>array_keys($filterAttribute->values)]);
+                }
             }
             elseif ($filterAttribute instanceof FilterAttributeLess || $filterAttribute instanceof FilterAttributeMore)
                 $this->addRule([$attribute], 'number');
             else
+            {
                 $this->addRule([$attribute], 'safe');
+            }
         }
 
         parent::init();

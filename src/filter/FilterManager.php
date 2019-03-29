@@ -55,6 +55,7 @@ class FilterManager
             if ($attributeValue === '' || $attributeValue === null)
                 continue;
 
+
             if ($filterAttribute instanceof FilterAttributeMore)
             {
                 $query->andFilterWhere([$filterAttribute->strict ? '>' : '>=', $attribute, $attributeValue]);

@@ -8,6 +8,7 @@ use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\FileAttribute;
 use svsoft\yii\items\forms\ItemForm;
 use yii\base\InvalidCallException;
+use yii\helpers\Inflector;
 use yii\widgets\ActiveField;
 use yii\widgets\ActiveForm;
 
@@ -43,7 +44,14 @@ class ItemFormWidget extends ActiveForm
             $fieldWidget = $this->field($this->itemForm, $field->getName());
 
             if (isset($this->labels[$fieldName]))
-                $fieldWidget->label($this->labels[$fieldName]);
+                $label = $this->labels[$fieldName];
+            else
+                $label = Inflector::camel2words($fieldName);
+
+            if ($field->getType()->getRequired())
+                $label = '*' . $label;
+
+            $fieldWidget->label($label);
 
             switch($field->getType()->getId())
             {

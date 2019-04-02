@@ -83,8 +83,10 @@ class ItemsBootstrap implements BootstrapInterface
         $i18n = $app->getI18n();
 
         if (!isset($i18n->translations['items']) && !isset($i18n->translations['items*'])) {
+
             $i18n->translations['items*'] = [
                 'class' => PhpMessageSource::class,
+                'basePath' => '@svsoft/yii/items/messages',
             ];
         }
 

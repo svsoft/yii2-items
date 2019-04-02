@@ -7,9 +7,11 @@ use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\repositories\ItemRepository;
+use svsoft\yii\items\services\ImageThumb;
 use yii\base\InvalidCallException;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 use yii\helpers\Inflector;
 
 class ItemGridView extends GridView
@@ -84,6 +86,9 @@ class ItemGridView extends GridView
 
         $columnList = $this->getColumnList();
 
+        /** @var ImageThumb $imageThumb */
+        $imageThumb = \Yii::$container->get(ImageThumb::class);
+
         foreach($columnList as $columnName)
         {
             $additionalColumn = [
@@ -96,27 +101,75 @@ class ItemGridView extends GridView
                 $field = $this->itemType->getFieldByName($columnName);
                 $fieldName = $field->getName();
 
-                if ($field->getType()->getMultiple())
-                    continue;
-
-                if ($field->getType()->getId() == Field::TYPE_FILE)
-                    continue;
-
                 if (isset($this->labels[$fieldName]))
                     $additionalColumn['label'] = $this->labels[$fieldName];
 
-                if ($field->getType()->getId() == Field::TYPE_ITEM)
+                if ($field->getType()->getId() == Field::TYPE_FILE)
+                {
+
+                    $additionalColumn['format'] = 'raw';
+                    $additionalColumn['value'] = function (Item $item) use ($field, $itemRepository, $imageThumb) {
+
+                        if (!$attributeValue = $item->getAttribute($field->getName()))
+                            return null;
+
+                        $filePaths = [];
+                        if ($field->getMultiple())
+                        {
+                            foreach($attributeValue as $fileAttribute)
+                            {
+                                $filePaths[] = $fileAttribute->getFilePath();
+                            }
+                        }
+                        else
+                        {
+                            $filePaths = [$attributeValue->getFilePath()];
+                        }
+
+
+                        $values = array_map(function ($value) use ($imageThumb) {
+                            return Html::img($imageThumb->thumbByParams($value, 50, 50));
+                        }, $filePaths);
+
+                        return implode(',', $values);
+                    };
+                }
+                elseif ($field->getType()->getId() == Field::TYPE_ITEM)
                 {
                     $additionalColumn['value'] = function(Item $item) use ($field, $itemRepository){
 
-                        if (!$value = $item->getAttribute($field->getName()))
+                        if (!$attributeValue = $item->getAttribute($field->getName()))
                             return null;
 
-                        $valueItem = $itemRepository->get($value);
-                        return (string)$valueItem;
+                        $values = [];
+                        if ($field->getMultiple())
+                        {
+                            foreach($attributeValue as $value)
+                            {
+                                $values[] = (string)$itemRepository->get($value);
+                            }
+                        }
+                        else
+                        {
+                            $values = [(string)$itemRepository->get($attributeValue)];
+                        }
+
+                        return implode(',', $values);
+                    };
+                }
+                elseif ($field->getMultiple())
+                {
+
+                    $additionalColumn['value'] = function(Item $item) use ($field){
+
+                        return implode(',', $item->getAttribute($field->getName()));
                     };
                 }
             }
+
+
+
+
 
             $additionalColumns[$columnName] = $additionalColumn;
         }

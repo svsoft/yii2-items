@@ -30,6 +30,47 @@ class ItemGridView extends GridView
     public $labels = [];
 
     /**
+     * Список скрытых колонок
+     *
+     * @var array
+     */
+    public $hiddenColumns = [];
+
+    /**
+     * Список видемых колонок, если пустой массив, то выводятся все колонки соответсвубщие ItemType
+     *
+     * @var array
+     */
+    public $visibleColumns = [];
+
+
+    /**
+     * Возвращает список колонок для вывода
+     *
+     * @return array
+     */
+    protected function getColumnList()
+    {
+        $columns[] = 'id';
+        foreach($this->itemType->getFields() as $field)
+        {
+            $columns[] = $field->getName();
+        }
+
+        foreach($columns as $key=>$columnName)
+        {
+            if ($this->visibleColumns && !in_array($columnName, $this->visibleColumns))
+                unset($columns[$key]);
+
+            if (in_array($columnName, $this->hiddenColumns))
+                unset($columns[$key]);
+        }
+
+        return $columns;
+    }
+
+    /**
+     * @throws \svsoft\yii\items\exceptions\FieldNotFoundException
      * @throws \yii\base\InvalidConfigException
      * @throws \yii\di\NotInstantiableException
      */
@@ -38,45 +79,46 @@ class ItemGridView extends GridView
         if (!$this->itemType)
             throw new InvalidCallException('Property itemType must be set');
 
-        $additionalColumns['id'] = [
-            'attribute' => 'id',
-            'label' => ArrayHelper::getValue($this->labels, 'id', 'Id'),
-        ];
-
         /** @var ItemRepository $itemRepository */
         $itemRepository = \Yii::$container->get(ItemRepository::class);
 
-        foreach($this->itemType->getFields() as $field)
+        $columnList = $this->getColumnList();
+
+        foreach($columnList as $columnName)
         {
-            $fieldName = $field->getName();
-
-            if ($field->getType()->getMultiple())
-                continue;
-
-            if ($field->getType()->getId() == Field::TYPE_FILE)
-                continue;
-
             $additionalColumn = [
-                'attribute' => $field->getName(),
-                'label' => ArrayHelper::getValue($this->labels, $fieldName, Inflector::camel2words($fieldName, true)),
+                'attribute' => $columnName,
+                'label' => ArrayHelper::getValue($this->labels, $columnName, Inflector::camel2words($columnName, true)),
             ];
 
-            if (isset($this->labels[$fieldName]))
-                $additionalColumn['label'] = $this->labels[$fieldName];
-
-            if ($field->getType()->getId() == Field::TYPE_ITEM)
+            if ($columnName != 'id')
             {
-                $additionalColumn['value'] = function(Item $item) use ($field, $itemRepository){
+                $field = $this->itemType->getFieldByName($columnName);
+                $fieldName = $field->getName();
 
-                    if (!$value = $item->getAttribute($field->getName()))
-                        return null;
+                if ($field->getType()->getMultiple())
+                    continue;
 
-                    $valueItem = $itemRepository->get($value);
-                    return (string)$valueItem;
-                };
+                if ($field->getType()->getId() == Field::TYPE_FILE)
+                    continue;
+
+                if (isset($this->labels[$fieldName]))
+                    $additionalColumn['label'] = $this->labels[$fieldName];
+
+                if ($field->getType()->getId() == Field::TYPE_ITEM)
+                {
+                    $additionalColumn['value'] = function(Item $item) use ($field, $itemRepository){
+
+                        if (!$value = $item->getAttribute($field->getName()))
+                            return null;
+
+                        $valueItem = $itemRepository->get($value);
+                        return (string)$valueItem;
+                    };
+                }
             }
 
-            $additionalColumns[$fieldName] = $additionalColumn;
+            $additionalColumns[$columnName] = $additionalColumn;
         }
 
         $this->columns = ArrayHelper::merge($additionalColumns, $this->columns);

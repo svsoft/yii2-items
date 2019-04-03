@@ -8,9 +8,12 @@ use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\FileAttribute;
 use svsoft\yii\items\forms\ItemForm;
 use yii\base\InvalidCallException;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 use yii\helpers\Inflector;
 use yii\widgets\ActiveField;
 use yii\widgets\ActiveForm;
+use yii\widgets\Block;
 
 class ItemFormWidget extends ActiveForm
 {
@@ -23,25 +26,282 @@ class ItemFormWidget extends ActiveForm
 
     public $labels;
 
+    /**
+     * @var ItemFormGroup[]
+     */
+    public $groups = [];
+
+    /**
+     * @var ItemFormBlock[]
+     */
+    public $blocks = [];
+
+    public $defaultBlockId = 'top';
+    public $defaultBlocks = [];
+
+    public $defaultGroup = [];
+
+
     function init()
     {
-        if (!$this->itemForm)
-            throw new InvalidCallException('Property itemForm must be set');
+        $this->prepareGroups();
 
+        $this->prepareBlocks();
 
         parent::init();
     }
 
+    protected function prepareBlocks()
+    {
+        $this->defaultBlocks = [
+            'top'=>[
+                'cols'=>12,
+            ],
+            'left'=>[
+                'cols'=>6,
+            ],
+            'right'=>[
+                'cols'=>6,
+            ],
+            'bottom'=>[
+                'cols'=>12,
+            ],
+        ];
+
+        if (!$this->blocks)
+        {
+            $id = key($this->defaultBlocks);
+            $block = current($this->defaultBlocks);
+            $block['id'] = $id;
+            $this->blocks[] = $block;
+        }
+
+        $blocks = [];
+        $allGroups = array_keys($this->groups);
+        foreach($this->blocks as $block)
+        {
+            if (isset($this->defaultBlocks[$block['id']]))
+            {
+                $block = ArrayHelper::merge($this->defaultBlocks[$block['id']], $block);
+            }
+
+
+            if (empty($block['class']))
+            {
+                $block['class'] = ItemFormBlock::class;
+            }
+
+            /** @var ItemFormBlock $block */
+            $block = \Yii::createObject($block);
+
+            $blocks[$block->id] = $block;
+
+
+            $allGroups = array_diff($allGroups, $block->groups);
+        }
+
+        $this->blocks = $blocks;
+
+        if ($allGroups)
+        {
+            foreach($this->blocks as $block)
+            {
+                if (!$block->groups)
+                    $block->groups = $allGroups;
+            }
+        }
+    }
+
+    protected function prepareGroups()
+    {
+        if (!$this->itemForm)
+            throw new InvalidCallException('Property itemForm must be set');
+
+        $this->defaultGroup = [
+            'title' => '',
+            'id'    => 'default',
+        ];
+
+        if (!$this->groups)
+            $this->groups[] = $this->defaultGroup;
+
+        $groups = [];
+        $allFields = $this->getAllFields();
+        $submitFound = false;
+        foreach($this->groups as $group)
+        {
+            if (empty($group['class']))
+            {
+                $group['class'] = ItemFormGroup::class;
+            }
+            /** @var ItemFormGroup $group */
+            $group = \Yii::createObject($group);
+            $groups[$group->id] = $group;
+
+            $allFields = array_diff($allFields, $group->fields);
+
+            if ($group->submit)
+                $submitFound = true;
+        }
+
+        if (!$submitFound)
+            end($groups)->submit = true;
+
+        $this->groups = $groups;
+
+        if ($allFields)
+        {
+            foreach($this->groups as $group)
+            {
+                if (!$group->fields)
+                    $group->fields = $allFields;
+            }
+        }
+    }
+
+    function renderGroups()
+    {
+        $html = '';
+        foreach($this->groups as $group)
+            $html .= $this->renderGroup($group->id);
+
+        return $html;
+    }
+
+    function renderGroup($id)
+    {
+        $group = $this->getGroup($id);
+
+        $html = Html::beginTag('div', ['class'=>'box box-primary']);
+
+        $html .= $this->renderGroupHeader($group->title);
+
+        $html .= Html::beginTag('div', ['class'=>'box-body']);
+        $actionFields = $this->fields($group->fields);
+
+        foreach($actionFields as $actionField)
+        {
+            $html .= (string)$actionField;
+        }
+
+        if ($group->submit)
+            $html .= Html::submitButton('Сохранить', ['class'=>'btn btn-success']);
+
+        $html .= Html::endTag('div');
+
+        $html .= Html::endTag('div');
+
+        return $html;
+    }
+
+    function renderBlock($id)
+    {
+        $block = $this->getBlock($id);
+
+        $html = Html::beginTag('div',['class'=>'col-lg-'.$block->cols]);
+
+        foreach($block->groups as $groupId)
+        {
+            $html .= $this->renderGroup($groupId);
+        }
+
+        $html .= Html::endTag('div');
+
+        return $html;
+    }
+
+    function renderBlocks()
+    {
+        $html = Html::beginTag('div',['class'=>'row']);
+
+        foreach($this->blocks as $block)
+            $html .= $this->renderBlock($block->id);
+
+        $html .= Html::endTag('div');
+
+        return $html;
+    }
+
+    /**
+     * @param $id
+     *
+     * @return ItemFormBlock
+     */
+    protected function getBlock($id)
+    {
+        return $this->blocks[$id];
+    }
+
+    /**
+     * @param $id
+     *
+     * @return ItemFormGroup
+     */
+    protected function getGroup($id)
+    {
+
+        return $this->groups[$id];
+    }
+
+    function beginGroup($id)
+    {
+        $group = $this->getGroup($id);
+
+        return '<div class="item-index box box-primary">' . $this->renderGroupHeader($group->title);
+    }
+
+    function endGroup()
+    {
+        return '</div>';
+    }
+
+    function renderGroupHeader($title)
+    {
+        if (!$title)
+            return '';
+
+        return '<div class="box-header with-border"><h3 class="box-title">' . $title . '</h3></div>';
+    }
+
+
+    function beginBlock($id)
+    {
+        $block = $this->getBlock($id);
+
+        return '<div class="col-lg-'.$block->cols.'">';
+    }
+
+    function endBlock()
+    {
+        return '</div>';
+    }
+
+    protected function getAllFields()
+    {
+        $fields = [];
+        foreach($this->itemForm->itemType->getFields() as $field)
+        {
+            $fields[] = $field->getName();
+        }
+
+        return $fields;
+    }
+
+
     /**
      * @return ActiveField[]
      */
-    function fields()
+    function fields($fields = [])
     {
+        if (empty($fields))
+            $fields = $this->getAllFields();
+
         $fieldWidgets = [];
-        foreach($this->itemForm->itemType->getFields() as $field)
+        foreach($fields as $fieldName)
         {
-            $fieldName = $field->getName();
-            $fieldWidget = $this->field($this->itemForm, $field->getName());
+            $field = $this->itemForm->itemType->getFieldByName($fieldName);
+
+            $fieldWidget = $this->field($this->itemForm, $fieldName);
 
             if (isset($this->labels[$fieldName]))
                 $label = $this->labels[$fieldName];

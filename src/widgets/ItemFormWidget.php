@@ -13,7 +13,6 @@ use yii\helpers\Html;
 use yii\helpers\Inflector;
 use yii\widgets\ActiveField;
 use yii\widgets\ActiveForm;
-use yii\widgets\Block;
 
 class ItemFormWidget extends ActiveForm
 {
@@ -27,21 +26,22 @@ class ItemFormWidget extends ActiveForm
     public $labels;
 
     /**
-     * @var ItemFormGroup[]
+     * @var ItemFormGroup[]|array
      */
     public $groups = [];
 
     /**
-     * @var ItemFormBlock[]
+     * @var ItemFormBlock[]|array
      */
     public $blocks = [];
 
-    public $defaultBlockId = 'top';
     public $defaultBlocks = [];
 
     public $defaultGroup = [];
 
-
+    /**
+     * @throws \yii\base\InvalidConfigException
+     */
     function init()
     {
         $this->prepareGroups();
@@ -51,6 +51,9 @@ class ItemFormWidget extends ActiveForm
         parent::init();
     }
 
+    /**
+     * @throws \yii\base\InvalidConfigException
+     */
     protected function prepareBlocks()
     {
         $this->defaultBlocks = [
@@ -112,6 +115,9 @@ class ItemFormWidget extends ActiveForm
         }
     }
 
+    /**
+     * @throws \yii\base\InvalidConfigException
+     */
     protected function prepareGroups()
     {
         if (!$this->itemForm)
@@ -289,7 +295,10 @@ class ItemFormWidget extends ActiveForm
 
 
     /**
-     * @return ActiveField[]
+     * @param array $fields
+     *
+     * @return array
+     * @throws \svsoft\yii\items\exceptions\FieldNotFoundException
      */
     function fields($fields = [])
     {

@@ -26,18 +26,33 @@ class ItemFormWidget extends ActiveForm
     public $labels;
 
     /**
-     * @var ItemFormGroup[]|array
+     * @var ItemFormGroup[]|array Группы полей
      */
     public $groups = [];
 
     /**
-     * @var ItemFormBlock[]|array
+     ** @var ItemFormBlock[]|array блоки групп
      */
     public $blocks = [];
 
     public $defaultBlocks = [];
 
     public $defaultGroup = [];
+
+    /**
+     * Список скрытых полей
+     *
+     * @var array
+     */
+    public $hiddenFields = [];
+
+    /**
+     * Список видимых полей полей
+     *
+     * @var array
+     */
+    public $visibleFields = [];
+
 
     /**
      * @throws \yii\base\InvalidConfigException
@@ -88,7 +103,6 @@ class ItemFormWidget extends ActiveForm
                 $block = ArrayHelper::merge($this->defaultBlocks[$block['id']], $block);
             }
 
-
             if (empty($block['class']))
             {
                 $block['class'] = ItemFormBlock::class;
@@ -98,7 +112,6 @@ class ItemFormWidget extends ActiveForm
             $block = \Yii::createObject($block);
 
             $blocks[$block->id] = $block;
-
 
             $allGroups = array_diff($allGroups, $block->groups);
         }
@@ -289,6 +302,11 @@ class ItemFormWidget extends ActiveForm
         {
             $fields[] = $field->getName();
         }
+
+        $fields = array_diff($fields, $this->hiddenFields);
+
+        if ($this->visibleFields)
+            $fields = array_intersect($fields, $this->visibleFields);
 
         return $fields;
     }

@@ -128,6 +128,10 @@ class ItemGridView extends GridView
 
 
                         $values = array_map(function ($value) use ($imageThumb) {
+
+                            if (getimagesize($value) === false)
+                                return pathinfo($value, PATHINFO_BASENAME);
+
                             return Html::img($imageThumb->thumbByParams($value, 50, 50));
                         }, $filePaths);
 
@@ -166,10 +170,6 @@ class ItemGridView extends GridView
                     };
                 }
             }
-
-
-
-
 
             $additionalColumns[$columnName] = $additionalColumn;
         }

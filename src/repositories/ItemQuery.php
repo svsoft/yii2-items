@@ -40,10 +40,23 @@ class ItemQuery extends Query
     protected $cacher;
 
     /**
+     * Флаг кеширования результатов
+     *
      * @var bool
      */
     protected $cacheResult;
 
+    /**
+     * ItemQuery constructor.
+     *
+     * @param $itemType
+     * @param TableManager $tableManager
+     * @param ItemHydrator $itemHydrator
+     * @param Cacher $cacher
+     * @param ItemTypeRepository $itemTypeRepository
+     *
+     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
+     */
     function __construct($itemType, TableManager $tableManager, ItemHydrator $itemHydrator, Cacher $cacher, ItemTypeRepository $itemTypeRepository)
     {
         if (!$itemType instanceof ItemType)
@@ -54,7 +67,7 @@ class ItemQuery extends Query
         $this->itemHydrator = $itemHydrator;
         $this->cacher = $cacher;
 
-        $this->cacheResult = false;
+        $this->cacheResult = true;
 
         parent::__construct([]);
     }
@@ -64,6 +77,7 @@ class ItemQuery extends Query
      * @param \yii\db\QueryBuilder $builder
      *
      * @return Query
+     * @throws FieldNotFoundException
      */
     function prepare($builder)
     {
@@ -233,7 +247,7 @@ class ItemQuery extends Query
     /**
      * @param $id
      *
-     * @return ItemQuery
+     * @return ItemQuery|Query
      */
     function andId($id)
     {
@@ -283,11 +297,11 @@ class ItemQuery extends Query
     }
 
     /**
-     * Queries a scalar value by setting [[select]] first.
-     * Restores the value of select to make this query reusable.
      * @param string|\yii\db\ExpressionInterface $selectExpression
-     * @param Connection|null $db
-     * @return bool|string
+     * @param null|Connection $db
+     *
+     * @return bool|false|null|string
+     * @throws \yii\db\Exception
      */
     protected function queryScalar($selectExpression, $db)
     {

@@ -115,7 +115,17 @@ class ImageThumb extends Component
             $thumbnailMode = self::MODE_INSET;
 
         /** @var \Imagine\Image\ImageInterface $thumb */
-        $thumb = $imagine->open($filePath)->thumbnail($size, $thumbnailMode);
+
+        try
+        {
+            $thumb = $imagine->open($filePath);
+        }
+        catch(\RuntimeException $exception)
+        {
+            return null;
+        }
+
+        $thumb = $thumb->thumbnail($size, $thumbnailMode);
 
         if ($mode == self::MODE_FIXED)
         {

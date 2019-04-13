@@ -2,7 +2,7 @@
 
 namespace svsoft\yii\items\decorators;
 
-use svsoft\yii\imagethumb\ThumbManagerInterface;
+use svsoft\yii\imagethumb\ImageThumbInterface;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\FileAttributeInterface;
 use svsoft\yii\items\entities\Item;
@@ -11,7 +11,6 @@ use svsoft\yii\items\exceptions\ItemAttributeNotFound;
 use svsoft\yii\items\exceptions\ItemTypeNotFoundException;
 use svsoft\yii\items\repositories\ItemTypeRepository;
 use svsoft\yii\items\services\Cacher;
-use svsoft\yii\items\services\ImageThumb;
 use yii\base\BaseObject;
 use yii\helpers\Html;
 use yii\helpers\HtmlPurifier;
@@ -28,21 +27,18 @@ class Decorator extends BaseObject
      */
     protected $cacher;
 
-    /** @var ImageThumb::class */
+    /**
+     * @var ImageThumbInterface
+     */
     public $imageThumb;
 
-    /**
-     * @var ThumbManagerInterface
-     */
-    public $thumbManager;
-
-    function __construct(ItemTypeRepository $itemTypeRepository, Cacher $cacher, ThumbManagerInterface $thumbManager)
+    function __construct(ItemTypeRepository $itemTypeRepository, Cacher $cacher, ImageThumbInterface $imageThumb)
     {
         $this->itemTypeRepository = $itemTypeRepository;
 
         $this->cacher = $cacher;
 
-        $this->thumbManager = $thumbManager;
+        $this->imageThumb = $imageThumb;
 
         parent::__construct([]);
     }
@@ -116,7 +112,7 @@ class Decorator extends BaseObject
             foreach($attributeValue as $value)
             {
                 if ($value instanceof FileAttributeInterface)
-                    $return[] = $this->thumbManager->thumb($value->getFilePath(), $thumbName);
+                    $return[] = $this->imageThumb->thumb($value->getFilePath(), $thumbName);
             }
         }
         else
@@ -124,7 +120,7 @@ class Decorator extends BaseObject
             $return = null;
             $value = $attributeValue;
             if ($value instanceof FileAttributeInterface)
-                $return = $this->thumbManager->thumb($value->getFilePath(), $thumbName);
+                $return = $this->imageThumb->thumb($value->getFilePath(), $thumbName);
         }
 
         return $return;

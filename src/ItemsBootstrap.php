@@ -2,6 +2,7 @@
 
 namespace svsoft\yii\items;
 
+use svsoft\yii\imagethumb\ImageThumbInterface;
 use svsoft\yii\imagethumb\ThumbManager;
 use svsoft\yii\imagethumb\ThumbManagerInterface;
 use svsoft\yii\items\decorators\Decorator;
@@ -48,7 +49,7 @@ class ItemsBootstrap implements BootstrapInterface
     /**
      * @var ThumbManager
      */
-    public $thumbManager = 'thumbManager';
+    public $imageThumb = 'imageThumb';
 
     /**
      * @param \yii\base\Application $app
@@ -112,19 +113,13 @@ class ItemsBootstrap implements BootstrapInterface
     {
         $container = \Yii::$container;
 
-        /** @var $thumbManager ThumbManagerInterface|array */
-        if (is_string($this->thumbManager))
-            $thumbManager = ArrayHelper::getValue($app->getComponents(), $this->thumbManager);
-        elseif (is_array($this->thumbManager))
-            $thumbManager = $this->thumbManager;
-        elseif (is_callable($this->thumbManager))
-            $thumbManager = $this->thumbManager;
-        elseif ($this->thumbManager instanceof ThumbManagerInterface)
-            $thumbManager = $this->thumbManager;
+        /** @var $imageThumb ThumbManagerInterface|array */
+        if (is_string($this->imageThumb))
+            $imageThumb = ArrayHelper::getValue($app->getComponents(), $this->imageThumb);
 
-        if ($thumbManager)
+        if ($imageThumb)
         {
-            $container->setSingleton(ThumbManagerInterface::class, $thumbManager);
+            $container->setSingleton(ImageThumbInterface::class, $imageThumb);
         }
         elseif ($container->has(ImageThumb::class))
         {

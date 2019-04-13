@@ -1,7 +1,7 @@
 <?php
 namespace svsoft\yii\items\services;
 
-use svsoft\yii\imagethumb\ThumbManagerInterface;
+use svsoft\yii\imagethumb\ImageThumbInterface;
 use Yii;
 use yii\base\Component;
 use yii\base\Exception;
@@ -10,7 +10,7 @@ use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
 use Imagine\Image\ImageInterface;
 
-class ImageThumb extends Component implements ThumbManagerInterface
+class ImageThumb extends Component implements ImageThumbInterface
 {
     const MODE_INSET = ImageInterface::THUMBNAIL_INSET;
     const MODE_OUTBOUND  = ImageInterface::THUMBNAIL_OUTBOUND;
@@ -176,12 +176,6 @@ class ImageThumb extends Component implements ThumbManagerInterface
 
         return '';
     }
-
-    public function getThumb($id)
-    {
-        throw new \BadMethodCallException('Method not implementations');
-    }
-
 
     public function create($filePath, $thumb)
     {

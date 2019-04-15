@@ -23,7 +23,8 @@
     "2amigos/yii2-ckeditor-widget": "^2.0",
     "mihaildev/yii2-elfinder": "^1.2",
     "unclead/yii2-multiple-input": "~2.0",
-    "kartik-v/yii2-datecontrol": "dev-master"
+    "kartik-v/yii2-datecontrol": "dev-master",
+    "svsoft/yii2-image-thumb": "dev-master"
   },
   "extra": {
 

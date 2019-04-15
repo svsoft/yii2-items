@@ -2,6 +2,7 @@
 
 namespace svsoft\yii\items\decorators;
 
+use svsoft\yii\imagethumb\ImageThumbInterface;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\FileAttributeInterface;
 use svsoft\yii\items\entities\Item;
@@ -10,7 +11,6 @@ use svsoft\yii\items\exceptions\ItemAttributeNotFound;
 use svsoft\yii\items\exceptions\ItemTypeNotFoundException;
 use svsoft\yii\items\repositories\ItemTypeRepository;
 use svsoft\yii\items\services\Cacher;
-use svsoft\yii\items\services\ImageThumb;
 use yii\base\BaseObject;
 use yii\helpers\Html;
 use yii\helpers\HtmlPurifier;
@@ -27,10 +27,12 @@ class Decorator extends BaseObject
      */
     protected $cacher;
 
-    /** @var ImageThumb::class */
+    /**
+     * @var ImageThumbInterface
+     */
     public $imageThumb;
 
-    function __construct(ItemTypeRepository $itemTypeRepository, Cacher $cacher, ImageThumb $imageThumb)
+    function __construct(ItemTypeRepository $itemTypeRepository, Cacher $cacher, ImageThumbInterface $imageThumb)
     {
         $this->itemTypeRepository = $itemTypeRepository;
 

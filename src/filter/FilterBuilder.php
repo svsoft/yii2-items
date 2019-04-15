@@ -91,11 +91,11 @@ class FilterBuilder
             {
                 $attributeValue = $item->getAttribute($attribute);
 
-                if (is_array($attributeValue))
+                if (\is_array($attributeValue))
                 {
                     foreach($attributeValue as $value)
                     {
-                        $propertyValues[$value] = $value;
+                        $attributeValues[$attribute][$value] = $value;
                     }
                 }
                 elseif ($attributeValue !== null)

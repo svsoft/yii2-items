@@ -17,4 +17,16 @@ trait CreateItemQueryTrait
     {
         return \Yii::$container->get(ItemQuery::class,[$itemType]);
     }
+
+    /**
+     * @param $itemType
+     *
+     * @return object
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\di\NotInstantiableException
+     */
+    protected static function createItemQuery($itemType)
+    {
+        return \Yii::$container->get(ItemQuery::class,[$itemType]);
+    }
 }

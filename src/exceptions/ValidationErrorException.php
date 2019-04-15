@@ -2,6 +2,6 @@
 
 namespace svsoft\yii\items\exceptions;
 
-class ValidationErrorException extends \Exception
+class ValidationErrorException extends \LogicException
 {
 }

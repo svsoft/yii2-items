@@ -2,6 +2,6 @@
 
 namespace svsoft\yii\items\exceptions;
 
-class ItemAttributeNotFound extends \Exception
+class ItemAttributeNotFound extends \LogicException
 {
 }

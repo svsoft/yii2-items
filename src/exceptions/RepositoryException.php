@@ -2,6 +2,6 @@
 
 namespace svsoft\yii\items\exceptions;
 
-class RepositoryException extends \Exception
+class RepositoryException extends \LogicException
 {
 }

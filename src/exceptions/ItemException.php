@@ -2,6 +2,6 @@
 
 namespace svsoft\yii\items\exceptions;
 
-class ItemException extends \Exception
+class ItemException extends \LogicException
 {
 }

@@ -3,18 +3,21 @@
 namespace svsoft\yii\items\traits;
 
 use svsoft\yii\items\repositories\ItemTypeRepository;
+use yii\base\InvalidConfigException;
 
 trait GetItemTypeRepositoryTrait
 {
     /**
      * @return ItemTypeRepository
-     * @throws \yii\base\InvalidConfigException
-     * @throws \yii\di\NotInstantiableException
      */
     protected static function getItemTypeRepository()
     {
-        /** @var ItemTypeRepository $repo */
-        $repo = \Yii::$container->get(ItemTypeRepository::class);
+        try
+        {
+            /** @var ItemTypeRepository $repo */
+            $repo = \Yii::$container->get(ItemTypeRepository::class);
+        }
+        catch(InvalidConfigException $exception) {}
 
         return $repo;
     }

@@ -2,6 +2,6 @@
 
 namespace svsoft\yii\items\exceptions;
 
-class FileStorageException extends \Exception
+class FileStorageException extends \LogicException
 {
 }

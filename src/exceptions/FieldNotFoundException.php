@@ -2,6 +2,6 @@
 
 namespace svsoft\yii\items\exceptions;
 
-class FieldNotFoundException extends \Exception
+class FieldNotFoundException extends \LogicException
 {
 }

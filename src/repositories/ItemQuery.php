@@ -262,7 +262,7 @@ class ItemQuery extends Query
     /**
      * @param null $db
      *
-     * @return array|Item[]
+     * @return Item[]
      */
     function all($db = null)
     {
@@ -282,7 +282,7 @@ class ItemQuery extends Query
     /**
      * @param null $db
      *
-     * @return array|Item
+     * @return Item
      */
     function one($db = null)
     {

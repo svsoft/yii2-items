@@ -115,18 +115,36 @@ class ItemQuery extends Query
         return parent::prepare($builder);
     }
 
+    /**
+     * @param array|string|\yii\db\ExpressionInterface $condition
+     * @param array $params
+     *
+     * @return $this
+     */
     public function andWhere($condition, $params = [])
     {
         $this->parseCondition($condition);
 
-        return parent::andWhere($condition, $params);
+        /** @var ItemQuery $self */
+        $self = parent::andWhere($condition, $params);
+
+        return $self;
     }
 
+    /**
+     * @param array|string|\yii\db\ExpressionInterface $condition
+     * @param array $params
+     *
+     * @return ItemQuery
+     */
     public function orWhere($condition, $params = [])
     {
         $this->parseCondition($condition);
 
-        return parent::orWhere($condition, $params);
+        /** @var ItemQuery $self */
+        $self = parent::orWhere($condition, $params);
+
+        return $self;
     }
 
     public function where($condition, $params = [])

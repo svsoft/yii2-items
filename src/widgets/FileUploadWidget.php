@@ -10,6 +10,7 @@ namespace svsoft\yii\items\widgets;
 use svsoft\yii\items\services\ImageThumb;
 use yii\bootstrap\Html;
 use yii\helpers\ArrayHelper;
+use yii\jui\Sortable;
 use yii\widgets\InputWidget;
 
 class FileUploadWidget extends InputWidget
@@ -48,30 +49,26 @@ class FileUploadWidget extends InputWidget
 
         $values = is_array($attributeValue) ? $attributeValue : ($attributeValue ? [$attributeValue] : null);
 
-
         if ($values)
         {
-            $html .= Html::beginTag('div',['class'=>'row']);
+            $htmlImageItems = [];
             foreach($values as  $key=>$value)
             {
-                $html .= Html::beginTag('div',['class'=>'file-upload-widget-img-item col-lg-2 col-sm-3 col-xs-6']);
-
+                $htmlImageItem = '';
                 if (is_string($value) && $filePath = ArrayHelper::getValue($this->files, $value) )
                 {
                     if (!file_exists($filePath) || getimagesize($filePath) === false)
                     {
-                        $html .= Html::tag( 'div', pathinfo($filePath, PATHINFO_BASENAME), ['class'=>'filename']);
+                        $htmlImageItem .= Html::tag( 'div', pathinfo($filePath, PATHINFO_BASENAME), ['class'=>'filename']);
                     }
                     else
                     {
-                        $html .= Html::img( $imageThumb->thumbByParams($filePath, 200, 200) );
+                        $htmlImageItem .= Html::img( $imageThumb->thumbByParams($filePath, 200, 200) );
                     }
                 }
 
-
-
-                $html .= Html::activeHiddenInput($this->model, $this->attribute . ($multiple?"[$key]":''), ['value'=>$value]);
-                $html .= Html::tag('div',
+                $htmlImageItem .= Html::activeHiddenInput($this->model, $this->attribute . ($multiple?"[$key]":''), ['value'=>$value]);
+                $htmlImageItem .= Html::tag('div',
                     Html::label(
                         Html::checkbox(Html::getInputName($this->model, $this->attribute . ($multiple?"[$key]":'')), false, ['value'=>''])
                         .'Удалить'
@@ -79,9 +76,15 @@ class FileUploadWidget extends InputWidget
                     ,['class'=>'checkbox']
                 );
 
-                $html .= Html::endTag('div');
+                $htmlImageItems[] = $htmlImageItem;
             }
-            $html .= Html::endTag('div');
+
+            $html .= Sortable::widget([
+                'items' => $htmlImageItems,
+                'options' => ['tag' => 'div', 'class'=>'file-items row'],
+                'itemOptions' => ['tag' => 'div', 'class'=>'file-upload-widget-img-item col-lg-2 col-md-3 col-sm-4 col-xs-6 file-item'],
+                'clientOptions' => ['cursor' => 'move'],
+            ]);
         }
 
         return $html;

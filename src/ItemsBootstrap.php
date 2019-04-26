@@ -2,10 +2,6 @@
 
 namespace svsoft\yii\items;
 
-use svsoft\yii\imagethumb\ImageThumbInterface;
-use svsoft\yii\imagethumb\ThumbManager;
-use svsoft\yii\imagethumb\ThumbManagerInterface;
-use svsoft\yii\items\decorators\Decorator;
 use svsoft\yii\items\factories\ItemFactory;
 use svsoft\yii\items\factories\ItemFormFactory;
 use svsoft\yii\items\factories\SaveModelFactory;
@@ -16,12 +12,9 @@ use svsoft\yii\items\repositories\ItemRepository;
 use svsoft\yii\items\repositories\ItemTypeRepository;
 use svsoft\yii\items\repositories\TableManager;
 use svsoft\yii\items\services\Cacher;
-use svsoft\yii\items\services\ImageThumb;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\console\Application;
-use yii\di\Instance;
-use yii\helpers\ArrayHelper;
 use yii\i18n\PhpMessageSource;
 
 class ItemsBootstrap implements BootstrapInterface
@@ -46,12 +39,6 @@ class ItemsBootstrap implements BootstrapInterface
      */
     public $itemClasses = [];
 
-
-    /**
-     * @var ThumbManager
-     */
-    public $imageThumb = 'imageThumb';
-
     /**
      * @param \yii\base\Application $app
      *
@@ -68,25 +55,15 @@ class ItemsBootstrap implements BootstrapInterface
 
         $container = \Yii::$container;
 
-        $this->initThumbManager($app);
-
-        $container->setSingleton('items-file-storage', function () use ($app) {
-            return \Yii::$container->get(FileStorage::class, [$this->fileStoragePath]);
-        });
-
-        $container->setSingleton('items-db', function () use ($app) {
-            return \Yii::$app->db;
-        });
-
-        $container->setSingleton(TableManager::class, [], [Instance::of('items-db')]);
-        $container->setSingleton(ItemTypeRepository::class, [], [Instance::of('items-file-storage')]);
-        $container->setSingleton(ItemRepository::class, [], [Instance::of('items-file-storage')]);
-        $container->setSingleton(ItemHydrator::class, [], [Instance::of('items-file-storage')]);
+        $fileStorage = $container->get(FileStorage::class, [$this->fileStoragePath]);
+        $container->setSingleton(TableManager::class, [], [\Yii::$app->db]);
+        $container->setSingleton(ItemTypeRepository::class, [], [$fileStorage]);
+        $container->setSingleton(ItemRepository::class, [], [$fileStorage]);
+        $container->setSingleton(ItemHydrator::class, [], [$fileStorage]);
         $container->setSingleton(ItemTypeHydrator::class);
         $container->setSingleton(ItemFormFactory::class, [], [$this->formClasses]);
         $container->setSingleton(SaveModelFactory::class, [], [$this->saveModelClasses]);
         $container->setSingleton(ItemFactory::class, [], [$this->itemClasses]);
-        $container->setSingleton(Decorator::class);
         $container->setSingleton(Cacher::class);
 
         if ($app instanceof Application) {
@@ -111,27 +88,5 @@ class ItemsBootstrap implements BootstrapInterface
         }
 
         return;
-    }
-
-    /**
-     * @param \yii\base\Application $app
-     *
-     */
-    private function initThumbManager($app)
-    {
-        $container = \Yii::$container;
-
-        /** @var $imageThumb ThumbManagerInterface|array */
-        if (is_string($this->imageThumb))
-            $imageThumb = ArrayHelper::getValue($app->getComponents(), $this->imageThumb);
-
-        if ($imageThumb)
-        {
-            $container->setSingleton(ImageThumbInterface::class, $imageThumb);
-        }
-        elseif ($container->has(ImageThumb::class))
-        {
-            $container->setSingleton(ThumbManagerInterface::class, $container->getDefinitions()[ImageThumb::class]);
-        }
     }
 }

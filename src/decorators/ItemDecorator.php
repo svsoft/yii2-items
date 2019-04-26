@@ -2,7 +2,6 @@
 
 namespace svsoft\yii\items\decorators;
 
-use svsoft\yii\imagethumb\ImageThumbInterface;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\FileAttributeInterface;
 use svsoft\yii\items\entities\Item;
@@ -28,17 +27,15 @@ class Decorator extends BaseObject
     protected $cacher;
 
     /**
-     * @var ImageThumbInterface
+     * @var string
      */
-    public $imageThumb;
+    public $thumbnailsComponent = 'thumbnails';
 
-    function __construct(ItemTypeRepository $itemTypeRepository, Cacher $cacher, ImageThumbInterface $imageThumb)
+    function __construct(ItemTypeRepository $itemTypeRepository, Cacher $cacher, $config = [])
     {
         $this->itemTypeRepository = $itemTypeRepository;
 
         $this->cacher = $cacher;
-
-        $this->imageThumb = $imageThumb;
 
         parent::__construct([]);
     }
@@ -83,7 +80,6 @@ class Decorator extends BaseObject
                 return '';
             }
 
-
             switch($typeId)
             {
                 case Field::TYPE_TEXT:
@@ -112,7 +108,7 @@ class Decorator extends BaseObject
             foreach($attributeValue as $value)
             {
                 if ($value instanceof FileAttributeInterface)
-                    $return[] = $this->imageThumb->thumb($value->getFilePath(), $thumbName);
+                    $return[] = $this->getThumbnails()->thumb($value->getFilePath(), $thumbName);
             }
         }
         else
@@ -120,7 +116,7 @@ class Decorator extends BaseObject
             $return = null;
             $value = $attributeValue;
             if ($value instanceof FileAttributeInterface)
-                $return = $this->imageThumb->thumb($value->getFilePath(), $thumbName);
+                $return = $this->getThumbnails()->thumb($value->getFilePath(), $thumbName);
         }
 
         return $return;

@@ -2,12 +2,14 @@
 
 namespace svsoft\yii\items\widgets;
 
+use svsoft\thumbnails\handlers\ResizeHandler;
+use svsoft\thumbnails\Thumb;
+use svsoft\thumbnails\ThumbnailsInterface;
 use svsoft\yii\items\admin\components\Label;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\repositories\ItemRepository;
-use svsoft\yii\items\services\ImageThumb;
 use yii\base\InvalidCallException;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
@@ -86,8 +88,9 @@ class ItemGridView extends GridView
 
         $columnList = $this->getColumnList();
 
-        /** @var ImageThumb $imageThumb */
-        $imageThumb = \Yii::$container->get(ImageThumb::class);
+        /** @var ThumbnailsInterface $thumbnails */
+        $thumb = new Thumb([new ResizeHandler(60,60)]);
+        $thumbnails = \Yii::$container->get(ThumbnailsInterface::class);
 
         foreach($columnList as $columnName)
         {
@@ -108,7 +111,7 @@ class ItemGridView extends GridView
                 {
 
                     $additionalColumn['format'] = 'raw';
-                    $additionalColumn['value'] = function (Item $item) use ($field, $itemRepository, $imageThumb) {
+                    $additionalColumn['value'] = function (Item $item) use ($field, $itemRepository, $thumbnails, $thumb) {
 
                         if (!$attributeValue = $item->getAttribute($field->getName()))
                             return null;
@@ -127,12 +130,12 @@ class ItemGridView extends GridView
                         }
 
 
-                        $values = array_map(function ($value) use ($imageThumb) {
+                        $values = array_map(function ($value) use ($thumbnails, $thumb) {
 
                             if (getimagesize($value) === false)
                                 return pathinfo($value, PATHINFO_BASENAME);
 
-                            return Html::img($imageThumb->thumbByParams($value, 50, 50));
+                            return $value ? Html::img($thumbnails->getCreator()->create($value, $thumb)) : '';
                         }, $filePaths);
 
                         return implode(',', $values);

@@ -7,7 +7,9 @@
 
 namespace svsoft\yii\items\widgets;
 
-use svsoft\yii\items\services\ImageThumb;
+use svsoft\thumbnails\handlers\ResizeHandler;
+use svsoft\thumbnails\Thumb;
+use svsoft\thumbnails\ThumbnailsInterface;
 use yii\bootstrap\Html;
 use yii\helpers\ArrayHelper;
 use yii\jui\Sortable;
@@ -36,8 +38,9 @@ class FileUploadWidget extends InputWidget
 
     protected function renderInput()
     {
-        /** @var ImageThumb $imageThumb */
-        $imageThumb = \Yii::$container->get(ImageThumb::class);
+        /** @var ThumbnailsInterface $thumbnails */
+        $thumb = new Thumb([new ResizeHandler(200,200)]);
+        $thumbnails = \Yii::$container->get(ThumbnailsInterface::class);
 
         $multiple = $this->multiple;
 
@@ -63,7 +66,7 @@ class FileUploadWidget extends InputWidget
                     }
                     else
                     {
-                        $htmlImageItem .= Html::img( $imageThumb->thumbByParams($filePath, 200, 200) );
+                        $htmlImageItem .= Html::img( $thumbnails->getCreator()->create($filePath, $thumb) );
                     }
                 }
 

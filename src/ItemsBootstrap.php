@@ -86,7 +86,5 @@ class ItemsBootstrap implements BootstrapInterface
                 'basePath' => '@svsoft/yii/items/messages',
             ];
         }
-
-        return;
     }
 }

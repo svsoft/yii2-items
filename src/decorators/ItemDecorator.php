@@ -2,6 +2,7 @@
 
 namespace svsoft\yii\items\decorators;
 
+use svsoft\thumbnails\ThumbnailsInterface;
 use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\FileAttributeInterface;
 use svsoft\yii\items\entities\Item;
@@ -14,7 +15,14 @@ use yii\base\BaseObject;
 use yii\helpers\Html;
 use yii\helpers\HtmlPurifier;
 
-class Decorator extends BaseObject
+/**
+ * Class ItemDecorator
+ * @package svsoft\yii\items\decorators
+ * @property-read $thumbnails
+ *
+ * @author Shiryakov Viktor <shiryakovv@gmail.com>
+ */
+class ItemDecorator extends BaseObject
 {
     /**
      * @var ItemTypeRepository
@@ -37,7 +45,19 @@ class Decorator extends BaseObject
 
         $this->cacher = $cacher;
 
-        parent::__construct([]);
+        parent::__construct($config);
+    }
+
+    /**
+     * @return ThumbnailsInterface
+     * @throws \yii\base\InvalidConfigException
+     */
+    function getThumbnails()
+    {
+        /** @var ThumbnailsInterface $component */
+        $component =  \Yii::$app->get($this->thumbnailsComponent);
+
+        return $component;
     }
 
     /**
@@ -121,4 +141,5 @@ class Decorator extends BaseObject
 
         return $return;
     }
+
 }

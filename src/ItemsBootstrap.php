@@ -15,6 +15,7 @@ use svsoft\yii\items\services\Cacher;
 use yii\base\BootstrapInterface;
 use yii\base\InvalidConfigException;
 use yii\console\Application;
+use yii\di\Instance;
 use yii\i18n\PhpMessageSource;
 
 class ItemsBootstrap implements BootstrapInterface
@@ -55,11 +56,18 @@ class ItemsBootstrap implements BootstrapInterface
 
         $container = \Yii::$container;
 
-        $fileStorage = $container->get(FileStorage::class, [$this->fileStoragePath]);
-        $container->setSingleton(TableManager::class, [], [\Yii::$app->db]);
-        $container->setSingleton(ItemTypeRepository::class, [], [$fileStorage]);
-        $container->setSingleton(ItemRepository::class, [], [$fileStorage]);
-        $container->setSingleton(ItemHydrator::class, [], [$fileStorage]);
+        $container->setSingleton('items-file-storage', function () use ($app) {
+            return \Yii::$container->get(FileStorage::class, [$this->fileStoragePath]);
+        });
+
+        $container->setSingleton('items-db', function () use ($app) {
+            return \Yii::$app->db;
+        });
+
+        $container->setSingleton(TableManager::class, [], [Instance::of('items-db')]);
+        $container->setSingleton(ItemTypeRepository::class, [], [Instance::of('items-file-storage')]);
+        $container->setSingleton(ItemRepository::class, [], [Instance::of('items-file-storage')]);
+        $container->setSingleton(ItemHydrator::class, [], [Instance::of('items-file-storage')]);
         $container->setSingleton(ItemTypeHydrator::class);
         $container->setSingleton(ItemFormFactory::class, [], [$this->formClasses]);
         $container->setSingleton(SaveModelFactory::class, [], [$this->saveModelClasses]);

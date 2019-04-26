@@ -23,13 +23,17 @@ trait CreateItemQueryTrait
      * @param $itemType
      *
      * @return ItemQuery
+     * @throws \svsoft\yii\items\exceptions\ItemTypeNotFoundException
      */
     protected static function createItemQuery($itemType)
     {
         try
         {
-            return \Yii::$container->get(ItemQuery::class,[$itemType]);
+            /** @var ItemQuery $query */
+            $query = \Yii::$container->get(ItemQuery::class,[$itemType]);
         }
         catch(InvalidConfigException $exception){};
+
+        return $query;
     }
 }

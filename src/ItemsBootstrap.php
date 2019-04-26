@@ -2,7 +2,6 @@
 
 namespace svsoft\yii\items;
 
-use svsoft\thumbnails\ThumbnailsInterface;
 use svsoft\yii\items\factories\ItemFactory;
 use svsoft\yii\items\factories\ItemFormFactory;
 use svsoft\yii\items\factories\SaveModelFactory;
@@ -41,6 +40,19 @@ class ItemsBootstrap implements BootstrapInterface
      */
     public $itemClasses = [];
 
+
+    /**
+     * Ид компонента приложения реализующего интерфейс svsoft\thumbnails\ThumbnailsInterface
+     * @var string
+     */
+    public $thumbnails = 'thumbnails';
+
+    /**
+     * Ид компонента приложения \yii\db\Connection
+     * @var string
+     */
+    public $db = 'db';
+
     /**
      * @param \yii\base\Application $app
      *
@@ -62,12 +74,11 @@ class ItemsBootstrap implements BootstrapInterface
         });
 
         $container->setSingleton('items-db', function () use ($app) {
-            return \Yii::$app->db;
+            return \Yii::$app->get($this->db);
         });
 
-
-        $container->setSingleton(ThumbnailsInterface::class, function () use ($app) {
-            return \Yii::$app->get('thumbnails');
+        $container->setSingleton('items-thumbnails', function () use ($app) {
+            return \Yii::$app->get($this->thumbnails);
         });
 
         $container->setSingleton(TableManager::class, [], [Instance::of('items-db')]);

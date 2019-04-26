@@ -10,6 +10,7 @@ namespace svsoft\yii\items\widgets;
 use svsoft\thumbnails\handlers\ResizeHandler;
 use svsoft\thumbnails\Thumb;
 use svsoft\thumbnails\ThumbnailsInterface;
+use svsoft\yii\items\traits\GetThumbnailsTrait;
 use yii\bootstrap\Html;
 use yii\helpers\ArrayHelper;
 use yii\jui\Sortable;
@@ -17,6 +18,8 @@ use yii\widgets\InputWidget;
 
 class FileUploadWidget extends InputWidget
 {
+    use GetThumbnailsTrait;
+
     public $multiple = false;
 
     public $files = [];
@@ -40,7 +43,7 @@ class FileUploadWidget extends InputWidget
     {
         /** @var ThumbnailsInterface $thumbnails */
         $thumb = new Thumb([new ResizeHandler(200,200)]);
-        $thumbnails = \Yii::$container->get(ThumbnailsInterface::class);
+        $thumbnails = $this::getThumbnails();
 
         $multiple = $this->multiple;
 

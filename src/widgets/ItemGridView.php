@@ -10,6 +10,7 @@ use svsoft\yii\items\entities\Field;
 use svsoft\yii\items\entities\Item;
 use svsoft\yii\items\entities\ItemType;
 use svsoft\yii\items\repositories\ItemRepository;
+use svsoft\yii\items\traits\GetThumbnailsTrait;
 use yii\base\InvalidCallException;
 use yii\grid\GridView;
 use yii\helpers\ArrayHelper;
@@ -18,6 +19,9 @@ use yii\helpers\Inflector;
 
 class ItemGridView extends GridView
 {
+
+    use GetThumbnailsTrait;
+
     /**
      * @var ItemType
      */
@@ -90,7 +94,7 @@ class ItemGridView extends GridView
 
         /** @var ThumbnailsInterface $thumbnails */
         $thumb = new Thumb([new ResizeHandler(60,60)]);
-        $thumbnails = \Yii::$container->get(ThumbnailsInterface::class);
+        $thumbnails = $this::getThumbnails();
 
         foreach($columnList as $columnName)
         {

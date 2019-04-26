@@ -22,14 +22,10 @@ trait CreateItemQueryTrait
     /**
      * @param $itemType
      *
-     * @return object|ItemQuery|null
+     * @return ItemQuery
      */
     protected static function createItemQuery($itemType)
     {
-        try
-        {
-            return \Yii::$container->get(ItemQuery::class,[$itemType]);
-        }
-        catch(InvalidConfigException $exception){};
+        return \Yii::$container->get(ItemQuery::class,[$itemType]);
     }
 }

@@ -91,8 +91,10 @@ class ItemsBootstrap implements BootstrapInterface
         $container->setSingleton(ItemFactory::class, [], [$this->itemClasses]);
         $container->setSingleton(Cacher::class);
 
-        if ($app instanceof Application) {
-            if (empty($app->controllerMap['migrate']['class'])) {
+        if ($app instanceof Application)
+        {
+            if (empty($app->controllerMap['migrate']['class']))
+            {
 
                 $app->controllerMap['migrate'] = [
                     'class' => 'yii\console\controllers\MigrateController',

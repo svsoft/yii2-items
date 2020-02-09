@@ -136,6 +136,9 @@ class ItemGridView extends GridView
 
                         $values = array_map(function ($value) use ($thumbnails, $thumb) {
 
+                            if (!file_exists($value))
+                                return pathinfo($value, PATHINFO_BASENAME);
+
                             if (getimagesize($value) === false)
                                 return pathinfo($value, PATHINFO_BASENAME);
 
